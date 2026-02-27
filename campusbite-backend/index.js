@@ -84,6 +84,10 @@ mongoose.connect(mongoURI, {
 }).catch(err => console.error('❌ MongoDB Connection Error:', err));
 
 // Initial Mock Data
+const mockCampuses = [
+  { name: 'GGI Campus', code: 'GGI001', logo: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=200' }
+];
+
 const mockVendors = [
   { vendorId: 'admin', name: 'Super Admin', password: 'admin', description: 'System Administrator', role: 'superadmin' },
   { vendorId: 'canteen-a', name: 'Canteen A', password: 'canteenA_pass789', description: 'Main Cafeteria', subscription: { status: 'Active', validUntil: new Date('2030-01-01') } },
@@ -93,18 +97,40 @@ const mockVendors = [
 ];
 
 const mockMenuItems = [
-  { menuId: 1, vendorId: 'canteen-a', name: 'Lunch Combo', description: 'Burger + Fries + Drink', price: 199, image: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=400&h=300&fit=crop', category: 'Combos' },
-  { menuId: 2, vendorId: 'canteen-b', name: 'Breakfast Special', description: 'Sandwich + Coffee', price: 149, image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400&h=300&fit=crop', category: 'Combos' },
-  { menuId: 3, vendorId: 'canteen-c', name: 'Mango Shake', description: 'Fresh mango blended', price: 99, image: 'https://images.unsplash.com/photo-1623065422902-30a2d299bbe4?w=400&h=300&fit=crop', category: 'Drinks' },
-  { menuId: 8, vendorId: 'canteen-a', name: 'French Fries', description: 'Crispy golden fries', price: 59, image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&h=300&fit=crop', category: 'Snacks' },
-  // Keeping it brief, actual menu could be larger
+  // Canteen A
+  { menuId: 1, vendorId: 'canteen-a', name: 'Lunch Combo', description: 'Burger + Fries + Drink', price: 199, image: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=400', category: 'Combos' },
+  { menuId: 8, vendorId: 'canteen-a', name: 'French Fries', description: 'Crispy golden fries', price: 59, image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400', category: 'Snacks' },
+  { menuId: 9, vendorId: 'canteen-a', name: 'Veg Burger', description: 'Classic veg patty', price: 89, image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=400', category: 'Burgers' },
+  
+  // Canteen B
+  { menuId: 2, vendorId: 'canteen-b', name: 'Breakfast Special', description: 'Sandwich + Coffee', price: 149, image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400', category: 'Combos' },
+  { menuId: 10, vendorId: 'canteen-b', name: 'Club Sandwich', description: 'Triple layer goodness', price: 129, image: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400', category: 'Snacks' },
+  
+  // Canteen C
+  { menuId: 3, vendorId: 'canteen-c', name: 'Mango Shake', description: 'Fresh mango blended', price: 99, image: 'https://images.unsplash.com/photo-1623065422902-30a2d299bbe4?w=400', category: 'Drinks' },
+  { menuId: 11, vendorId: 'canteen-c', name: 'Cold Coffee', description: 'Creamy cold brew', price: 79, image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400', category: 'Drinks' },
+  
+  // Stationery
+  { menuId: 4, vendorId: 'stationery', name: 'Blue Pen', description: 'Smooth ink ball pen', price: 10, image: 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=400', category: 'Stationery' },
+  { menuId: 5, vendorId: 'stationery', name: 'Notebook', description: '100 pages ruled', price: 40, image: 'https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400', category: 'Books' }
 ];
 
 async function seedDatabase() {
+  // Seed Campus First
+  if (await Campus.countDocuments() === 0) {
+    console.log('🌱 Seeding Campuses...');
+    await Campus.insertMany(mockCampuses);
+  }
+  const defaultCampus = await Campus.findOne();
+
   const vendorCount = await Vendor.countDocuments();
   if (vendorCount === 0) {
-    console.log('🌱 Seeding Vendors with updated passwords...');
-    await Vendor.insertMany(mockVendors);
+    console.log('🌱 Seeding Vendors...');
+    const vendorsToSeed = mockVendors.map(v => ({
+      ...v,
+      campusId: v.role === 'superadmin' ? null : defaultCampus?._id
+    }));
+    await Vendor.insertMany(vendorsToSeed);
   }
   
   const menuCount = await Menu.countDocuments();
@@ -115,8 +141,6 @@ async function seedDatabase() {
 
   // Pre-seed a College Admin
   if (await CollegeAdmin.countDocuments() === 0) {
-    const defaultCampus = await Campus.findOne(); 
-    // If a campus exists, we seed the CollegeAdmin to prevent crashes.
     if (defaultCampus) {
       console.log('🌱 Seeding Mock College Admin...');
       await CollegeAdmin.create({
@@ -569,6 +593,28 @@ app.post('/api/ordering/create-kiosk-order', async (req, res) => {
   } catch (error) {
     console.error('Razorpay Kiosk Order Error:', error);
     res.status(500).json({ message: 'Error creating Razorpay order for cart' });
+  }
+});
+
+// --- DEBUG / EMERGENCY ROUTES ---
+app.post('/api/debug/reset-db', async (req, res) => {
+  const { secret } = req.body;
+  if (secret !== 'campusbite_secret_2024') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+
+  try {
+    console.log('🚨 EMERGENCY RESET TRIGGERED');
+    await Campus.deleteMany({});
+    await Vendor.deleteMany({});
+    await Menu.deleteMany({});
+    await Order.deleteMany({});
+    await CollegeAdmin.deleteMany({});
+    
+    await seedDatabase();
+    res.json({ success: true, message: 'Database reset and re-seeded successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
