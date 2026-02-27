@@ -136,13 +136,17 @@ export default function App() {
         body: JSON.stringify(orderData)
       });
       const order = await response.json();
-      setLastOrder(order);
-      addOrder(order); // Save the full order object from server
-      setScreen('success');
+      if (response.ok) {
+        setLastOrder(order);
+        addOrder(order);
+        setScreen('success');
+      } else {
+        throw new Error(order.error || 'Server rejected order');
+      }
     } catch (err) {
       console.error('Order submission failed:', err);
-      // Fallback to local success for demo
-      setScreen('success');
+      alert('Order failed to reach server. Please check your connection and try again.');
+      // Do NOT set screen to success
     }
   };
 
