@@ -29,15 +29,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'];
 
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true, // Reflect the request origin (Allow all for easy deployment)
   credentials: true
 }));
 
@@ -46,17 +38,19 @@ app.use(express.json());
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: true, // Allow all origins for Socket.io
     methods: ["GET", "POST", "PATCH"]
   }
 });
 
 // Database Connection
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/campusbite';
+console.log('Attempting to connect to:', mongoURI.split('@')[1] || 'Local DB');
+
 mongoose.connect(mongoURI, {
   serverSelectionTimeoutMS: 5000
 }).then(async () => {
-  console.log('✅ Connected to MongoDB');
+  console.log('✅ Connected to MongoDB successfully');
   await seedDatabase();
   
   // Set up Automatic Canteen Suspension Cron Job
