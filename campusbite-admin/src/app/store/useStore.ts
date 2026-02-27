@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { io } from 'socket.io-client';
 
-const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const socket = io(import.meta.env.VITE_API_URL || '');
+export const API_URL = import.meta.env.VITE_API_URL || '';
 
 export interface MenuItem {
   id: number;

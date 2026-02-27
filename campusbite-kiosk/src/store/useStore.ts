@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { io } from 'socket.io-client';
 
-const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
+const socket = io(import.meta.env.VITE_API_URL || '');
 
 export interface MenuItem {
     menuId: number;
@@ -52,7 +52,7 @@ export const useStore = create<StoreState>()(
 
                 fetchMenu: async () => {
                     try {
-                        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+                        const baseUrl = import.meta.env.VITE_API_URL || '';
                         const response = await fetch(`${baseUrl}/api/menu`);
                         const data = await response.json();
                         set({ menu: data });

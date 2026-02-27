@@ -25,7 +25,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { io } from 'socket.io-client';
 import { useStore } from './store/useStore';
 
-const socket = io('http://localhost:5000');
+const socket = io(import.meta.env.VITE_API_URL || '');
 
 // --- Types ---
 interface MenuItem {
@@ -129,7 +129,7 @@ export default function App() {
     };
 
     try {
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const baseUrl = import.meta.env.VITE_API_URL || '';
       const response = await fetch(`${baseUrl}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
