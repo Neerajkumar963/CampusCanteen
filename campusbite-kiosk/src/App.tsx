@@ -922,7 +922,8 @@ function CheckoutScreen({ cart, serviceFee, total, serviceType, serviceId, onBac
           <div className="flex-col gap-05">
             <button className="btn-black-border" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '0.5rem' }} onClick={async () => {
               try {
-                const response = await fetch('http://localhost:5000/api/ordering/create-kiosk-order', {
+                const baseUrl = import.meta.env.VITE_API_URL || '';
+                const response = await fetch(`${baseUrl}/api/ordering/create-kiosk-order`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ amount: total })

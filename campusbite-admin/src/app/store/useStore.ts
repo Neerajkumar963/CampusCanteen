@@ -268,7 +268,7 @@ export const useStore = create<StoreState>((set, get) => {
 
     updateMenuItem: async (itemId, updates) => {
       try {
-        await fetch(`http://localhost:5000/api/menu/${itemId}`, {
+        await fetch(`${API_URL}/api/menu/${itemId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updates),
