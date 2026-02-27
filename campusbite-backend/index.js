@@ -101,9 +101,6 @@ const mockMenuItems = [
 ];
 
 async function seedDatabase() {
-  // Temporary: Clear existing vendors to apply the new passwords
-  await Vendor.deleteMany({});
-  
   const vendorCount = await Vendor.countDocuments();
   if (vendorCount === 0) {
     console.log('🌱 Seeding Vendors with updated passwords...');
