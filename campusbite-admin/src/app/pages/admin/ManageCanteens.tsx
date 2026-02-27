@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useStore } from '../../store/useStore';
+import { useStore, API_URL } from '../../store/useStore';
 import { Store, Plus, X } from 'lucide-react';
 
 interface CampusVendor {
@@ -34,7 +34,7 @@ export default function ManageCanteens() {
 
         try {
             const campusId = typeof currentVendor.campusId === 'object' ? currentVendor.campusId._id : currentVendor.campusId;
-            const res = await fetch(`http://localhost:5000/api/vendors?campusId=${campusId}`);
+            const res = await fetch(`${API_URL}/api/vendors?campusId=${campusId}`);
             const data = await res.json();
             if (data.success) {
                 setCanteens(data.vendors);
@@ -56,7 +56,7 @@ export default function ManageCanteens() {
 
         try {
             const campusId = typeof currentVendor?.campusId === 'object' ? currentVendor.campusId._id : currentVendor?.campusId;
-            const res = await fetch('http://localhost:5000/api/vendors', {
+            const res = await fetch(`${API_URL}/api/vendors`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -88,7 +88,7 @@ export default function ManageCanteens() {
     const toggleVendorStatus = async (vendorId: string, currentStatus: string) => {
         try {
             const newStatus = currentStatus === 'Active' ? 'Suspended' : 'Active';
-            const res = await fetch(`http://localhost:5000/api/vendors/${vendorId}/subscription`, {
+            const res = await fetch(`${API_URL}/api/vendors/${vendorId}/subscription`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus })
@@ -173,8 +173,8 @@ export default function ManageCanteens() {
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`px-3 py-1 text-xs font-semibold rounded-full ${canteen.subscription?.status === 'Active'
-                                                ? 'bg-[#F0FDF4] text-[#22C55E]'
-                                                : 'bg-red-50 text-red-600'
+                                            ? 'bg-[#F0FDF4] text-[#22C55E]'
+                                            : 'bg-red-50 text-red-600'
                                             }`}>
                                             {canteen.subscription?.status || 'Active'}
                                         </span>
@@ -183,8 +183,8 @@ export default function ManageCanteens() {
                                         <button
                                             onClick={() => toggleVendorStatus(canteen._id, canteen.subscription?.status || 'Active')}
                                             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${canteen.subscription?.status === 'Active'
-                                                    ? 'text-red-600 bg-red-50 hover:bg-red-100'
-                                                    : 'text-[#22C55E] bg-[#F0FDF4] hover:bg-green-100'
+                                                ? 'text-red-600 bg-red-50 hover:bg-red-100'
+                                                : 'text-[#22C55E] bg-[#F0FDF4] hover:bg-green-100'
                                                 }`}
                                         >
                                             {canteen.subscription?.status === 'Active' ? 'Suspend' : 'Activate'}

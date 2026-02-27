@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useStore } from '../../store/useStore';
+import { useStore, API_URL } from '../../store/useStore';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function CollegeAnalytics() {
@@ -15,7 +15,7 @@ export default function CollegeAnalytics() {
 
             try {
                 const campusId = typeof currentVendor.campusId === 'object' ? currentVendor.campusId._id : currentVendor.campusId;
-                const res = await fetch(`http://localhost:5000/api/vendors?campusId=${campusId}`);
+                const res = await fetch(`${API_URL}/api/vendors?campusId=${campusId}`);
                 const data = await res.json();
                 if (data.success) {
                     setCampusVendorIds(data.vendors.map((v: any) => v.vendorId));
@@ -46,7 +46,7 @@ export default function CollegeAnalytics() {
         nextDate.setDate(date.getDate() + 1);
 
         const dayOrders = orders.filter(o => {
-            const oDate = new Date(o.timestamp);
+            const oDate = new Date(o.createdAt);
             return campusVendorIds.includes(o.vendorId || '') &&
                 oDate >= date && oDate < nextDate;
         });

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Save, CreditCard, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { useStore } from '../../store/useStore';
+import { useStore, API_URL } from '../../store/useStore';
 
 export default function Settings() {
   const currentVendor = useStore((state) => state.currentVendor);
@@ -197,7 +197,7 @@ export default function Settings() {
               <button
                 onClick={async () => {
                   try {
-                    const response = await fetch('http://localhost:5000/api/ordering/subscriptions/create-order', {
+                    const response = await fetch(`${API_URL}/api/ordering/subscriptions/create-order`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ vendorId: currentVendor?.vendorId })
@@ -212,7 +212,7 @@ export default function Settings() {
                       description: "SaaS Subscription Renewal",
                       order_id: order.id,
                       handler: async function (response: any) {
-                        const verifyRes = await fetch('http://localhost:5000/api/ordering/subscriptions/verify', {
+                        const verifyRes = await fetch(`${API_URL}/api/ordering/subscriptions/verify`, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({

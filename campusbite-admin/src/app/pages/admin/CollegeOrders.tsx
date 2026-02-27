@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useStore } from '../../store/useStore';
+import { useStore, API_URL } from '../../store/useStore';
 import { Search } from 'lucide-react';
 
 type FilterType = 'All' | 'Today' | 'Pending' | 'Completed' | 'Cancelled';
@@ -19,7 +19,7 @@ export default function CollegeOrders() {
 
             try {
                 const campusId = typeof currentVendor.campusId === 'object' ? currentVendor.campusId._id : currentVendor.campusId;
-                const res = await fetch(`http://localhost:5000/api/vendors?campusId=${campusId}`);
+                const res = await fetch(`${API_URL}/api/vendors?campusId=${campusId}`);
                 const data = await res.json();
                 if (data.success) {
                     setCampusVendorIds(data.vendors.map((v: any) => v.vendorId));
@@ -43,7 +43,7 @@ export default function CollegeOrders() {
         if (filter === 'Today') {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const orderDate = new Date(order.timestamp);
+            const orderDate = new Date(order.createdAt);
             orderDate.setHours(0, 0, 0, 0);
             if (orderDate.getTime() !== today.getTime()) return false;
         } else if (filter !== 'All') {
@@ -138,7 +138,7 @@ export default function CollegeOrders() {
                             </thead>
                             <tbody className="divide-y divide-[#E5E5E5]">
                                 {filteredOrders.slice().reverse().map((order) => (
-                                    <tr key={order.id} className="hover:bg-[#F7F4F1] transition-colors">
+                                    <tr key={order.orderId} className="hover:bg-[#F7F4F1] transition-colors">
                                         <td className="px-6 py-4">
                                             <span className="font-semibold text-[#FF6B00]">#{order.tokenNumber}</span>
                                         </td>
@@ -174,7 +174,7 @@ export default function CollegeOrders() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-[#6B6B6B]">
-                                            {new Date(order.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                            {new Date(order.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                                         </td>
                                     </tr>
                                 ))}

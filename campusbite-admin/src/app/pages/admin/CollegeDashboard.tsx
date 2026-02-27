@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useStore } from '../../store/useStore';
+import { useStore, API_URL } from '../../store/useStore';
 import { Building2, Store, ShoppingBag, DollarSign } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -22,7 +22,7 @@ export default function CollegeDashboard() {
 
             try {
                 const campusId = typeof currentVendor.campusId === 'object' ? currentVendor.campusId._id : currentVendor.campusId;
-                const res = await fetch(`http://localhost:5000/api/superadmin/analytics?campusId=${campusId}`);
+                const res = await fetch(`${API_URL}/api/superadmin/analytics?campusId=${campusId}`);
                 const data = await res.json();
                 if (data.success) {
                     setAnalytics(data.analytics);
