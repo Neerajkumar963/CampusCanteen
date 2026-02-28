@@ -205,11 +205,11 @@ export default function App() {
       <AnimatePresence mode="wait">
         {screen === 'invalid' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="screen p-8 text-center" style={{ background: '#FFFAF5', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ background: '#FFEBE0', padding: '1.5rem', borderRadius: '50%', marginBottom: '1.5rem' }}>
+            <div style={{ background: '#FFEBE0', padding: '1rem', borderRadius: '999px', marginBottom: '1.5rem' }}>
               <X size={48} color="var(--primary)" />
             </div>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Use Valid Scanner</h2>
-            <p style={{ color: 'var(--text-dim)', fontSize: '1rem', lineHeight: 1.5 }}>
+            <p style={{ color: 'var(--text-dim)', fontSize: '1rem', lineHeight: 1.5, textAlign: 'center', padding: '0 1rem' }}>
               Please scan a valid CampusBite QR code placed at your college or canteen to order food.
             </p>
           </motion.div>
