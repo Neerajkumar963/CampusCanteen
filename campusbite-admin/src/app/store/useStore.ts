@@ -187,14 +187,14 @@ export const useStore = create<StoreState>((set, get) => {
       const state = get();
       const tokenNumber = state.orders.length + 1;
       const order: Order = {
-        id: Date.now(),
+        orderId: Date.now() as any, // Cast if the interface strictly expects something else
         tokenNumber,
         items: [...state.cart],
         total: state.getCartTotal(),
         paymentMethod,
         orderType,
         status: 'Pending',
-        timestamp: new Date(),
+        createdAt: new Date().toISOString(),
       };
 
       set((state) => ({

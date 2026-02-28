@@ -13,8 +13,12 @@ export default function Analytics() {
   }));
 
   orders.forEach((order) => {
-    const hour = new Date(order.timestamp).getHours();
-    hourlyData[hour].orders += 1;
+    const dateVal = order.createdAt || (order as any).timestamp;
+    if (!dateVal) return;
+    const hour = new Date(dateVal).getHours();
+    if (!isNaN(hour) && hourlyData[hour]) {
+      hourlyData[hour].orders += 1;
+    }
   });
 
   // Calculate top selling items
