@@ -57,6 +57,11 @@ interface Vendor {
 }
 
 // --- Data ---
+const CAMPUS_HASH_MAP: Record<string, string> = {
+  'g7k9x2m4': 'GGI', // Secure Hash for Gulzar Group of Institutes
+  'l3p8v5n1': 'LPU', // Secure Hash for Lovely Professional University
+};
+
 const VENDORS: Vendor[] = [
   { id: 'canteen-a', name: 'Main Canteen', description: 'Burgers, Sandwiches & Beverages', image: 'https://images.unsplash.com/photo-1567529854338-fc097b962123?w=800', campus: 'GGI' },
   { id: 'canteen-b', name: 'South Side Cafe', description: 'Coffee & Snacks', image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800', campus: 'GGI' },
@@ -98,9 +103,10 @@ export default function App() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const code = params.get('campus');
-    if (code) {
-      setCampusCode(code.toUpperCase());
+    const hash = params.get('c'); // Secure hash identifier
+
+    if (hash && CAMPUS_HASH_MAP[hash]) {
+      setCampusCode(CAMPUS_HASH_MAP[hash]);
     }
 
     fetchMenu();
