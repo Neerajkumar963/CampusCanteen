@@ -952,6 +952,26 @@ function CheckoutScreen({ cart, serviceFee, total, serviceType, serviceId, onBac
                   theme: { color: "#FF6B00" }
                 };
 
+                const loadRazorpay = () => {
+                  return new Promise((resolve) => {
+                    if ((window as any).Razorpay) {
+                      resolve(true);
+                      return;
+                    }
+                    const script = document.createElement('script');
+                    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+                    script.onload = () => resolve(true);
+                    script.onerror = () => resolve(false);
+                    document.body.appendChild(script);
+                  });
+                };
+
+                const isLoaded = await loadRazorpay();
+                if (!isLoaded) {
+                  alert("Failed to load Razorpay SDK. Please check your connection.");
+                  return;
+                }
+
                 const rzp = new (window as any).Razorpay(options);
                 rzp.open();
               } catch (err) {
