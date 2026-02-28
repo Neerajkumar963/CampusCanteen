@@ -25,7 +25,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { io } from 'socket.io-client';
 import { useStore } from './store/useStore';
 
-const socket = io(import.meta.env.VITE_API_URL || '');
+const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
 
 // --- Types ---
 interface MenuItem {
@@ -45,7 +45,7 @@ interface CartItem extends MenuItem {
   quantity: number;
 }
 
-type ServiceType = 'counter' | 'table' | 'hostel' | 'classroom';
+type ServiceType = 'counter' | 'table' | 'hostel' | 'classroom' | '';
 type Screen = 'welcome' | 'canteen-selector' | 'menu' | 'service' | 'verify' | 'checkout' | 'success' | 'invalid';
 
 interface Vendor {
@@ -55,20 +55,15 @@ interface Vendor {
   image: string;
   campus: string;
   supportedServices?: ServiceType[];
+  deliveryCharge?: number;
+  tableServiceCharge?: number;
+  hostelServiceCharge?: number;
 }
 
 // --- Data ---
-const CAMPUS_HASH_MAP: Record<string, string> = {
-  'g7k9x2m4': 'GGI', // Secure Hash for Gulzar Group of Institutes
-  'l3p8v5n1': 'LPU', // Secure Hash for Lovely Professional University
-};
+// Removed CAMPUS_HASH_MAP (Now dynamic via backend)
 
-const VENDORS: Vendor[] = [
-  { id: 'canteen-a', name: 'Main Canteen', description: 'Burgers, Sandwiches & Beverages', image: 'https://images.unsplash.com/photo-1567529854338-fc097b962123?w=800', campus: 'GGI', supportedServices: ['counter', 'table', 'hostel', 'classroom'] },
-  { id: 'canteen-b', name: 'South Side Cafe', description: 'Coffee & Snacks', image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800', campus: 'GGI', supportedServices: ['counter', 'table'] },
-  { id: 'stationery', name: 'Stationery', description: 'Pens, Books & more', image: 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=800', campus: 'GGI', supportedServices: ['counter', 'hostel'] },
-  { id: 'canteen-c', name: 'LPU Mega Canteen', description: 'North & South Indian', image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800', campus: 'LPU', supportedServices: ['counter', 'table', 'hostel', 'classroom'] },
-];
+const INITIAL_VENDORS: Vendor[] = [];
 
 
 
@@ -77,14 +72,13 @@ const SERVICE_FEES: Record<ServiceType, number> = {
   table: 10,
   hostel: 20,
   classroom: 15,
+  '': 0
 };
 
 // --- App Component ---
 export default function App() {
-  const initialHash = new URLSearchParams(window.location.search).get('c');
-  const isValidHash = initialHash && CAMPUS_HASH_MAP[initialHash];
-
-  const [screen, setScreen] = useState<Screen>(isValidHash ? 'welcome' : 'invalid');
+  const [screen, setScreen] = useState<Screen>('invalid');
+  const [vendors, setVendors] = useState<Vendor[]>(INITIAL_VENDORS);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [serviceType, setServiceType] = useState<ServiceType>('counter');
@@ -94,10 +88,11 @@ export default function App() {
   const [pendingItem, setPendingItem] = useState<MenuItem | null>(null);
   const [lastOrder, setLastOrder] = useState<any>(null);
   const [isMyOrdersOpen, setIsMyOrdersOpen] = useState(false);
-  const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerName, setCustomerName] = useState(() => localStorage.getItem('cb_customer_name') || '');
+  const [customerPhone, setCustomerPhone] = useState(() => localStorage.getItem('cb_customer_phone') || '');
   const [isVerified, setIsVerified] = useState(false);
-  const [campusCode, setCampusCode] = useState<string>(isValidHash ? CAMPUS_HASH_MAP[initialHash] : '');
+  const [campusCode, setCampusCode] = useState<string>('');
+  const [platformFeeEnabled, setPlatformFeeEnabled] = useState(true); // Controlled by Superadmin
 
   const menuItems = useStore(state => state.menu);
   const fetchMenu = useStore(state => state.fetchMenu);
@@ -105,14 +100,66 @@ export default function App() {
   const addOrder = useStore(state => state.addOrder);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const hash = params.get('c'); // Secure hash identifier
+    const fetchCampusAndData = async () => {
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const token = new URLSearchParams(window.location.search).get('c');
 
-    if (hash && CAMPUS_HASH_MAP[hash]) {
-      setCampusCode(CAMPUS_HASH_MAP[hash]);
-    }
+      if (!token) {
+        setScreen('invalid');
+        return;
+      }
 
-    fetchMenu();
+      try {
+        // Step 1: Verify Token and fetch Campus Info
+        const campusRes = await fetch(`${baseUrl}/api/campuses/verify-token?token=${token}`);
+        if (!campusRes.ok) {
+          setScreen('invalid');
+          return;
+        }
+        const campusData = await campusRes.json();
+        const campusInfo = campusData.campus;
+
+        setCampusCode(campusInfo.name);
+        setScreen('welcome');
+
+        // Step 2: Fetch Menu (already in store but good to trigger)
+        fetchMenu();
+
+        // Step 3: Fetch Vendors for this campus
+        const vendorRes = await fetch(`${baseUrl}/api/vendors?campusId=${campusInfo._id}`);
+        if (!vendorRes.ok) return;
+        const vendorData = await vendorRes.json();
+        const liveVendors = vendorData.vendors || [];
+
+        const mappedVendors: Vendor[] = liveVendors.map((v: any) => ({
+          id: v.vendorId,
+          name: v.name,
+          description: v.description || '',
+          image: v.image || 'https://images.unsplash.com/photo-1567529854338-fc097b962123?w=800',
+          campus: campusInfo.name,
+          supportedServices: v.supportedServices || ['counter'],
+          deliveryCharge: v.deliveryCharge ?? 20,
+          tableServiceCharge: v.tableServiceCharge ?? 10,
+          hostelServiceCharge: v.hostelServiceCharge ?? 15,
+        }));
+
+        setVendors(mappedVendors);
+      } catch (err) {
+        console.error('Failed to load campus data:', err);
+        setScreen('invalid');
+      }
+    };
+
+    fetchCampusAndData();
+
+    // Fetch platform fee setting from backend
+    const baseUrl2 = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    fetch(`${baseUrl2}/api/settings/platform`)
+      .then(r => r.json())
+      .then(data => setPlatformFeeEnabled(data.platformFeeEnabled ?? true))
+      .catch(() => { }); // Default to enabled if fetch fails
+
+    // Setup socket listeners
     socket.on('order_status_update', (data: any) => {
       // Check against orderId which is what the backend sends as 'id', or other common ID fields
       const matches = lastOrder && (
@@ -126,22 +173,66 @@ export default function App() {
       }
     });
 
+    socket.on('vendor_services_updated', (updatedVendor: any) => {
+      setVendors(prev => prev.map(v => {
+        if (v.id === updatedVendor.vendorId) {
+          return {
+            ...v,
+            supportedServices: updatedVendor.supportedServices || v.supportedServices,
+            deliveryCharge: updatedVendor.deliveryCharge,
+            tableServiceCharge: updatedVendor.tableServiceCharge,
+            hostelServiceCharge: updatedVendor.hostelServiceCharge
+          };
+        }
+        return v;
+      }));
+      // Also update the currently selected vendor instantly if it's open
+      setSelectedVendor(prev => {
+        if (prev && prev.id === updatedVendor.vendorId) {
+          return {
+            ...prev,
+            supportedServices: updatedVendor.supportedServices || prev.supportedServices,
+            deliveryCharge: updatedVendor.deliveryCharge,
+            tableServiceCharge: updatedVendor.tableServiceCharge,
+            hostelServiceCharge: updatedVendor.hostelServiceCharge
+          };
+        }
+        return prev;
+      });
+    });
+
     return () => {
       socket.off('order_status_update');
+      socket.off('vendor_services_updated');
     };
   }, [lastOrder]);
 
-  const handleOrderConfirm = async (paymentMethod: 'UPI' | 'Cash', razorpayDetails?: any) => {
+  // Stable, permanent socket listener for real-time platform fee toggle (never torn down)
+  useEffect(() => {
+    socket.on('platform_settings_updated', (settings: any) => {
+      setPlatformFeeEnabled(settings.platformFeeEnabled ?? true);
+    });
+    return () => {
+      socket.off('platform_settings_updated');
+    };
+  }, []); // [] = runs once on mount, never re-registers
+
+  const handleOrderConfirm = async (paymentMethod: 'Online' | 'Cash', razorpayDetails?: any) => {
     const orderData = {
       vendorId: selectedVendor?.id,
       vendorName: selectedVendor?.name,
       items: cart.map(i => ({ item: i, quantity: i.quantity })),
-      total: total,
-      orderType: serviceType === 'counter' ? 'Pickup' : (serviceType === 'table' ? 'Table' : 'Delivery'),
-      serviceId: serviceId,
+      total: total, // Assuming 'total' is still the correct variable, not 'getCartTotal()' as it's not defined in the original code.
       paymentMethod,
+      orderType: serviceType === 'counter' ? 'Pickup' :
+        serviceType === 'table' ? 'Table' :
+          serviceType === 'hostel' ? 'Hostel' : 'Classroom',
+      serviceId,
       customerName,
       customerPhone,
+      deliveryOtp: (serviceType === 'hostel' || serviceType === 'classroom')
+        ? Math.floor(1000 + Math.random() * 9000).toString()
+        : undefined,
       timestamp: new Date(), // Add timestamp for local display consistency
       ...(razorpayDetails || {})
     };
@@ -197,7 +288,21 @@ export default function App() {
   };
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const total = subtotal + SERVICE_FEES[serviceType];
+
+  // Calculate dynamic service fee based on selected vendor's settings
+  const getServiceFee = () => {
+    if (!selectedVendor) return 0;
+    switch (serviceType) {
+      case 'counter': return 0;
+      case 'table': return selectedVendor.tableServiceCharge ?? SERVICE_FEES.table;
+      case 'hostel': return selectedVendor.hostelServiceCharge ?? SERVICE_FEES.hostel;
+      case 'classroom': return selectedVendor.deliveryCharge ?? SERVICE_FEES.classroom; // Use delivery charge for classroom too? Or separate? 
+      default: return 0;
+    }
+  };
+
+  const platformFee = platformFeeEnabled && (serviceType === 'hostel' || serviceType === 'classroom') ? 1 : 0;
+  const total = subtotal + getServiceFee() + platformFee;
 
   const activeOrders = myOrders.filter(o => ['Pending', 'Preparing', 'Ready', 'Cancelled'].includes(o.status));
 
@@ -222,15 +327,21 @@ export default function App() {
           <CanteenSelectorScreen
             key="selector"
             campusCode={campusCode}
-            vendors={VENDORS.filter(v => v.campus === campusCode)}
+            vendors={vendors.filter(v => v.campus === campusCode)}
             onSelect={(vendor: Vendor) => {
               setSelectedVendor(vendor);
               setCart([]); // Reset cart on canteen change
-              if (vendor.supportedServices && vendor.supportedServices.length > 0) {
-                setServiceType(vendor.supportedServices[0]);
-              } else {
-                setServiceType('counter');
-              }
+
+              // Pre-fill customer details from localStorage (don't clear them)
+              setCustomerName(localStorage.getItem('cb_customer_name') || '');
+              setCustomerPhone(localStorage.getItem('cb_customer_phone') || '');
+              setIsVerified(false);
+
+              const isStationery = vendor.name.toLowerCase().includes('stationery');
+              const defaultServices = isStationery ? ['counter', 'table', 'hostel'] : ['counter', 'table', 'hostel', 'classroom'];
+              const supported = vendor.supportedServices && vendor.supportedServices.length > 0 ? vendor.supportedServices : defaultServices;
+
+              setServiceType(supported[0] as ServiceType);
               setScreen('menu');
             }}
           />
@@ -263,11 +374,17 @@ export default function App() {
               if (serviceType === 'hostel' || serviceType === 'classroom') {
                 setScreen('verify');
               } else {
+                // Clear user details for non-delivery orders to ensure Razorpay stays clean
+                // Keep saved details even for non-delivery orders
+                setCustomerName(localStorage.getItem('cb_customer_name') || '');
+                setCustomerPhone(localStorage.getItem('cb_customer_phone') || '');
+                setIsVerified(false);
                 setScreen('checkout');
               }
             }}
             vendorName={selectedVendor?.name}
             supportedServices={selectedVendor?.supportedServices}
+            selectedVendor={selectedVendor}
             onUpdateQty={updateQuantity}
           />
         )}
@@ -288,10 +405,13 @@ export default function App() {
           <CheckoutScreen
             key="checkout"
             cart={cart}
-            serviceFee={SERVICE_FEES[serviceType]}
+            serviceFee={getServiceFee()}
+            platformFee={platformFee}
             total={total}
             serviceType={serviceType}
             serviceId={serviceId}
+            customerName={customerName}
+            customerPhone={customerPhone}
             onBack={() => {
               if (serviceType === 'hostel' || serviceType === 'classroom') {
                 setScreen('verify');
@@ -307,6 +427,7 @@ export default function App() {
             serviceType={serviceType}
             tokenNumber={lastOrder?.tokenNumber || '??'}
             status={lastOrder?.status || 'Preparing'}
+            deliveryOtp={lastOrder?.deliveryOtp}
             onReset={() => {
               setCart([]);
               setScreen('welcome');
@@ -338,7 +459,7 @@ export default function App() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 200,
+            zIndex: screen === 'checkout' ? 50 : 200, // Reduced z-index when on checkout/payment to avoid overlap
             border: '2px solid #FF6B00',
             cursor: 'pointer'
           }}
@@ -547,9 +668,9 @@ function MenuScreen({ vendorName, vendorId, onBack, onNext, selectedCategory, on
                 <img src={item.image} alt={item.name} />
                 {item.badge && <div className="card-floating-badge" style={{ fontSize: '0.6rem', padding: '0.2rem 0.5rem' }}>{item.badge}</div>}
                 {!item.available && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <span className="bg-red-500 text-white px-3 py-1 font-bold rounded-lg transform -rotate-12 border-2 border-white shadow-lg text-sm">
-                      OUT OF STOCK
+                  <div className="sold-out-overlay">
+                    <span className="sold-out-tag">
+                      SOLD OUT
                     </span>
                   </div>
                 )}
@@ -561,7 +682,7 @@ function MenuScreen({ vendorName, vendorId, onBack, onNext, selectedCategory, on
               <div className="item-footer">
                 <span className="price-now">₹{item.price}</span>
                 <button
-                  className={`add-item-btn ${!item.available ? 'bg-gray-400 cursor-not-allowed text-gray-200 border-none' : ''}`}
+                  className={`add-item-btn ${!item.available ? 'unavailable-btn' : ''}`}
                   onClick={() => item.available && onAddToCart(item)}
                   disabled={!item.available}
                 >
@@ -599,20 +720,49 @@ function MenuScreen({ vendorName, vendorId, onBack, onNext, selectedCategory, on
   );
 }
 
-function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack, onNext, vendorName, onUpdateQty, supportedServices }: any) {
+function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack, onNext, vendorName, onUpdateQty, supportedServices, selectedVendor }: any) {
   const allOptions = [
     { id: 'counter', title: 'Self Pickup', price: 'FREE', icon: <Utensils size={24} /> },
-    { id: 'table', title: 'Table Service', price: 'FREE', icon: <MapPin size={24} /> },
-    { id: 'hostel', title: 'Hostel Delivery', price: '+ ₹20', icon: <Smartphone size={24} /> },
-    { id: 'classroom', title: 'Classroom Delivery', price: '+ ₹15', icon: <Smartphone size={24} /> },
+    {
+      id: 'table',
+      title: 'Table Service',
+      price: (selectedVendor?.tableServiceCharge ?? 10) > 0 ? `+ ₹${selectedVendor?.tableServiceCharge ?? 10}` : 'FREE',
+      icon: <MapPin size={24} />
+    },
+    {
+      id: 'hostel',
+      title: 'Hostel Delivery',
+      price: `+ ₹${selectedVendor?.hostelServiceCharge ?? 20}`,
+      icon: <Smartphone size={24} />
+    },
+    {
+      id: 'classroom',
+      title: 'Classroom Delivery',
+      price: `+ ₹${selectedVendor?.deliveryCharge ?? 15}`,
+      icon: <Smartphone size={24} />
+    },
   ];
 
-  // Logic: Filter options based on explicitly supported services, otherwise follow legacy fallback logic
-  const options = supportedServices && supportedServices.length > 0
-    ? allOptions.filter(opt => supportedServices.includes(opt.id))
-    : (vendorName?.toLowerCase().includes('stationery')
-      ? allOptions.slice(0, 3) // Old default fallback
-      : allOptions);
+  const isServiceSupported = (id: string) => {
+    if (Array.isArray(supportedServices)) {
+      return supportedServices.includes(id);
+    }
+    if (vendorName?.toLowerCase().includes('stationery')) {
+      return id !== 'classroom'; // legacy fallback for stationery
+    }
+    return true; // default all supported
+  };
+
+  const options = allOptions.filter(opt => isServiceSupported(opt.id));
+
+  // If the user's currently selected option disappears live, fallback to an allowed one
+  useEffect(() => {
+    if (options.length > 0 && !options.find(opt => opt.id === selected)) {
+      onSelect(options[0].id);
+    } else if (options.length === 0 && selected !== '') {
+      onSelect('');
+    }
+  }, [supportedServices, selected, options, onSelect]);
 
   const [blockNum, setBlockNum] = useState('');
   const [roomNum, setRoomNum] = useState('');
@@ -675,7 +825,7 @@ function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack
         </h3>
 
         <div className="flex-col gap-05" style={{ marginBottom: '2.5rem' }}>
-          {options.map(opt => (
+          {options.length > 0 ? options.map(opt => (
             <div
               key={opt.id}
               className={`service-option ${selected === opt.id ? 'active' : ''}`}
@@ -697,10 +847,14 @@ function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack
                 <Check size={14} color="var(--primary)" strokeWidth={3} />
               </div>}
             </div>
-          ))}
+          )) : (
+            <div style={{ textAlign: 'center', padding: '2rem', background: 'white', border: '1px dashed #E5E5E5', borderRadius: '16px' }}>
+              <p style={{ fontWeight: 700, color: 'var(--text-dim)' }}>No delivery options are currently available.</p>
+            </div>
+          )}
         </div>
 
-        {selected !== 'counter' && (
+        {selected && selected !== 'counter' && (
           <div className="flex-col" style={{ alignItems: 'center', marginBottom: '2.5rem', gap: '1rem' }}>
             {(selected === 'hostel' || selected === 'classroom') ? (
               <>
@@ -746,40 +900,42 @@ function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack
       </div>
 
       {/* Fixed Bottom Action Bar */}
-      <div style={{
-        position: 'absolute',
-        bottom: 0, left: 0, right: 0,
-        padding: '1rem 1.5rem 1.5rem 1.5rem',
-        background: 'linear-gradient(to top, #FFFAF5 80%, transparent)',
-        zIndex: 10
-      }}>
-        <button
-          className="primary-btn"
-          style={{
-            width: '100%',
-            padding: '1.25rem',
-            borderRadius: '16px',
-            fontSize: '1.1rem',
-            fontWeight: 800,
-            color: (selected !== 'counter' && (selected === 'table' ? !serviceId : (!blockNum || !roomNum))) ? '' : 'white',
-            background: (selected !== 'counter' && (selected === 'table' ? !serviceId : (!blockNum || !roomNum))) ? '' : '#10B981'
-          }}
-          onClick={() => {
-            const finalId = (selected === 'hostel' || selected === 'classroom')
-              ? `Block ${blockNum}, Room ${roomNum}`
-              : serviceId;
-            onIdChange(finalId);
-            onNext();
-          }}
-          disabled={selected !== 'counter' && (
-            selected === 'table' ? !serviceId : (!blockNum || !roomNum)
-          )}
-        >
-          {selected !== 'counter' && (selected === 'table' ? !serviceId : (!blockNum || !roomNum))
-            ? (selected === 'table' ? 'Enter Table Number' : 'Enter Block & Room')
-            : 'Pay Now'}
-        </button>
-      </div>
+      {selected && (
+        <div style={{
+          position: 'absolute',
+          bottom: 0, left: 0, right: 0,
+          padding: '1rem 1.5rem 1.5rem 1.5rem',
+          background: 'linear-gradient(to top, #FFFAF5 80%, transparent)',
+          zIndex: 10
+        }}>
+          <button
+            className="primary-btn"
+            style={{
+              width: '100%',
+              padding: '1.25rem',
+              borderRadius: '16px',
+              fontSize: '1.1rem',
+              fontWeight: 800,
+              color: (selected !== 'counter' && (selected === 'table' ? !serviceId : (!blockNum || !roomNum))) ? '' : 'white',
+              background: (selected !== 'counter' && (selected === 'table' ? !serviceId : (!blockNum || !roomNum))) ? '' : '#10B981'
+            }}
+            onClick={() => {
+              const finalId = (selected === 'hostel' || selected === 'classroom')
+                ? `Block ${blockNum}, Room ${roomNum}`
+                : serviceId;
+              onIdChange(finalId);
+              onNext();
+            }}
+            disabled={selected !== 'counter' && (
+              selected === 'table' ? !serviceId : (!blockNum || !roomNum)
+            )}
+          >
+            {selected !== 'counter' && (selected === 'table' ? !serviceId : (!blockNum || !roomNum))
+              ? (selected === 'table' ? 'Enter Table Number' : 'Enter Block & Room')
+              : 'Pay Now'}
+          </button>
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -788,24 +944,57 @@ function UserDetailsScreen({ name, phone, onNameChange, onPhoneChange, isVerifie
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
+  const [isEditing, setIsEditing] = useState(!name || !phone); // Start in edit mode if no saved details
 
-  const handleSendOtp = () => {
+  const hasSavedDetails = !!(localStorage.getItem('cb_customer_name') && localStorage.getItem('cb_customer_phone'));
+
+  const handleSendOtp = async () => {
     if (!name || phone.length < 10) {
       setError('Please enter valid name and 10-digit phone number');
       return;
     }
     setError('');
-    setOtpSent(true);
-    // Mock OTP delivery
-    alert("Verification Code Sent! (Use 1234 for testing)");
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${baseUrl}/api/otp/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setOtpSent(true);
+        alert("Verification Code Sent! Please check your terminal.");
+      } else {
+        setError(data.message || 'Failed to send OTP');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Network error sending OTP');
+    }
   };
 
-  const handleVerify = () => {
-    if (otp === '1234') {
-      onVerified();
-      setError('');
-    } else {
-      setError('Invalid verification code');
+  const handleVerify = async () => {
+    setError('');
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${baseUrl}/api/otp/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, otp })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        // Save verified details to localStorage for future orders
+        localStorage.setItem('cb_customer_name', name);
+        localStorage.setItem('cb_customer_phone', phone);
+        onVerified();
+      } else {
+        setError(data.message || 'Invalid verification code');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Network error verifying OTP');
     }
   };
 
@@ -825,7 +1014,60 @@ function UserDetailsScreen({ name, phone, onNameChange, onPhoneChange, isVerifie
           <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '0.5rem' }}>Required for Hostel/Classroom deliveries</p>
         </div>
 
-        <div className="flex-col" style={{ gap: '1.25rem' }}>
+        {/* If saved details exist and not editing, show summary card with inline OTP */}
+        {hasSavedDetails && !isEditing && !isVerified && (
+          <div style={{ background: 'white', borderRadius: '16px', padding: '1.25rem', border: '1.5px dashed #FF6B00', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Saved Details</span>
+              <button
+                style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', padding: 0 }}
+                onClick={() => { setIsEditing(true); setOtpSent(false); setOtp(''); setError(''); }}
+              >Edit</button>
+            </div>
+            <p style={{ margin: 0, fontWeight: 800, fontSize: '1.05rem', color: '#1A1A1A' }}>{name}</p>
+            <p style={{ margin: 0, fontWeight: 600, fontSize: '1rem', color: 'var(--primary)' }}>{phone}</p>
+
+            {/* Inline OTP flow */}
+            {!otpSent ? (
+              <button
+                className="primary-btn"
+                style={{ padding: '0.75rem', fontSize: '0.9rem', marginTop: '0.25rem' }}
+                onClick={handleSendOtp}
+              >
+                Send OTP to verify
+              </button>
+            ) : (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.5rem', color: '#4B5563' }}>Enter Code</label>
+                <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                  <input
+                    className="dashed-input-box"
+                    style={{ flex: 1, padding: '1rem', background: '#FFFAF5', fontSize: '1.2rem', textAlign: 'center', letterSpacing: '0.5rem', minWidth: 0 }}
+                    placeholder="----"
+                    maxLength={4}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  />
+                  <button
+                    className="primary-btn"
+                    style={{ padding: '0 1rem', fontSize: '0.85rem', background: '#10B981', whiteSpace: 'nowrap', minWidth: '80px' }}
+                    onClick={handleVerify}
+                    disabled={otp.length < 4}
+                  >
+                    Verify
+                  </button>
+                </div>
+                <button
+                  style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', padding: '0.4rem 0 0', display: 'block' }}
+                  onClick={handleSendOtp}
+                >Resend OTP</button>
+              </motion.div>
+            )}
+            {error && <p style={{ color: '#EF4444', fontSize: '0.85rem', fontWeight: 600, margin: 0 }}>{error}</p>}
+          </div>
+        )}
+
+        <div className="flex-col" style={{ gap: '1.25rem', display: (hasSavedDetails && !isEditing && !isVerified) ? 'none' : 'flex' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.5rem', color: '#4B5563' }}>Full Name</label>
             <input
@@ -914,7 +1156,7 @@ function UserDetailsScreen({ name, phone, onNameChange, onPhoneChange, isVerifie
   );
 }
 
-function CheckoutScreen({ cart, serviceFee, total, serviceType, serviceId, onBack, onConfirm }: any) {
+function CheckoutScreen({ cart, serviceFee, platformFee = 0, total, serviceType, serviceId, customerName, customerPhone, onBack, onConfirm }: any) {
   const getServiceLabel = (id: string) => {
     switch (id) {
       case 'table': return 'Table Service Charge';
@@ -931,7 +1173,7 @@ function CheckoutScreen({ cart, serviceFee, total, serviceType, serviceId, onBac
         <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Review Order</h2>
       </header>
 
-      <div className="checkout-container" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)', padding: 0 }}>
+      <div className="checkout-container" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 64px)', padding: 0 }}>
 
         <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1 }}>
           {/* "NOW" Bill Summary at the top of Review Order */}
@@ -955,6 +1197,12 @@ function CheckoutScreen({ cart, serviceFee, total, serviceType, serviceId, onBac
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--primary)', fontWeight: 600 }}>
                   <span>{getServiceLabel(serviceType)}</span>
                   <span>₹{serviceFee}</span>
+                </div>
+              )}
+              {platformFee > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#6B7280', fontWeight: 600 }}>
+                  <span>Platform Fee</span>
+                  <span>₹{platformFee}</span>
                 </div>
               )}
               {serviceId && (
@@ -993,13 +1241,27 @@ function CheckoutScreen({ cart, serviceFee, total, serviceType, serviceId, onBac
                   name: "CampusBite Kiosk",
                   description: "Campus Food Order",
                   order_id: order.id,
-                  prefill: {
-                    name: "Campus Student",
-                    contact: "9999999999",
+                  prefill: (serviceType === 'hostel' || serviceType === 'classroom') ? {
+                    name: customerName || "Campus Student",
+                    contact: customerPhone,
                     email: "student@campusbite.com",
+                  } : {
+                    name: "CampusBite Kiosk",
+                    contact: "9000000000",   // Dummy kiosk number — skips Razorpay contact form
+                    email: "kiosk@campusbite.com",
+                  },
+                  readonly: {
+                    name: true,
+                    email: true,
+                    contact: true
+                  },
+                  modal: {
+                    hide_topbar: true, // Hides the orange header bar with profile icon
+                    escape: false,     // Prevent accidental close via Escape key
+                    backdropclose: false
                   },
                   handler: function (response: any) {
-                    onConfirm('UPI', response);
+                    onConfirm('Online', response);
                   },
                   theme: { color: "#FF6B00" },
                   config: {
@@ -1016,7 +1278,9 @@ function CheckoutScreen({ cart, serviceFee, total, serviceType, serviceId, onBac
                       },
                       sequence: ['block.custom_methods'],
                       preferences: {
-                        show_default_blocks: false
+                        show_default_blocks: false,
+                        show_account_options: false, // Hides the user/profile icon
+                        customer_identifier: false   // Hides the email/phone identifier in top bar
                       }
                     }
                   }
@@ -1044,6 +1308,41 @@ function CheckoutScreen({ cart, serviceFee, total, serviceType, serviceId, onBac
 
                 const rzp = new (window as any).Razorpay(options);
                 rzp.open();
+
+                // Inject CSS into the Razorpay iframe to hide the profile/account icon
+                // The icon lives in `div[class*="icon-button"]` at the top-right of Razorpay's UI
+                const hideRazorpayIcon = () => {
+                  const iframes = document.querySelectorAll('iframe');
+                  for (const iframe of iframes) {
+                    try {
+                      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+                      if (iframeDoc && !iframeDoc.getElementById('rzp-kiosk-hide-icon')) {
+                        const style = iframeDoc.createElement('style');
+                        style.id = 'rzp-kiosk-hide-icon';
+                        // Hide various selectors that Razorpay uses for the profile icon
+                        style.innerHTML = `
+                          [class*="icon-button"],
+                          [class*="profile"],
+                          [class*="customer-icon"],
+                          [class*="account-icon"],
+                          .razorpay-payment-icon,
+                          [data-testid="user-icon"],
+                          [data-testid="account-icon"] {
+                            display: none !important;
+                          }
+                        `;
+                        iframeDoc.head?.appendChild(style);
+                      }
+                    } catch (e) {
+                      // Cross-origin iframe — skip silently
+                    }
+                  }
+                };
+
+                // Try immediately and retry a few times as Razorpay renders asynchronously
+                setTimeout(hideRazorpayIcon, 500);
+                setTimeout(hideRazorpayIcon, 1000);
+                setTimeout(hideRazorpayIcon, 2000);
               } catch (err) {
                 console.error('Payment Error:', err);
                 alert("Payment initialization failed. Please try again or pay in cash.");
@@ -1067,7 +1366,7 @@ function CheckoutScreen({ cart, serviceFee, total, serviceType, serviceId, onBac
   );
 }
 
-function SuccessScreen({ serviceType, onReset, tokenNumber, status }: any) {
+function SuccessScreen({ serviceType, onReset, tokenNumber, status, deliveryOtp }: any) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="welcome-screen">
       <div className="success-animation" style={{ transform: 'scale(0.8)', marginBottom: '-1rem' }}>
@@ -1086,7 +1385,9 @@ function SuccessScreen({ serviceType, onReset, tokenNumber, status }: any) {
         {(serviceType === 'hostel' || serviceType === 'classroom') && (
           <div className="otp-card" style={{ background: 'var(--secondary)', color: 'white', width: '100%', padding: '1.25rem', borderRadius: '16px', textAlign: 'center' }}>
             <p style={{ fontWeight: 700, opacity: 0.8, fontSize: '0.8rem', marginBottom: '0.25rem' }}>DELIVERY OTP</p>
-            <div className="otp-number" style={{ fontSize: '2rem', fontWeight: 900 }}>8241</div>
+            <div className="otp-number" style={{ fontSize: '2rem', fontWeight: 900 }}>
+              {deliveryOtp || '----'}
+            </div>
           </div>
         )}
       </div>

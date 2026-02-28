@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { io } from 'socket.io-client';
 
-const socket = io(import.meta.env.VITE_API_URL || '');
-export const API_URL = import.meta.env.VITE_API_URL || '';
+const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export interface MenuItem {
   id: number;
@@ -25,13 +25,16 @@ export interface Order {
   tokenNumber: number;
   items: CartItem[];
   total: number;
-  paymentMethod: 'UPI' | 'Cash';
-  orderType: 'Pickup' | 'Table' | 'Delivery';
+  paymentMethod: string;
+  orderType: 'Pickup' | 'Table' | 'Hostel' | 'Classroom';
   serviceId?: string;
   status: 'Pending' | 'Preparing' | 'Ready' | 'Completed' | 'Cancelled';
   paymentStatus?: 'Pending' | 'Paid';
   createdAt: string;
   vendorId?: string;
+  customerName?: string;
+  customerPhone?: string;
+  deliveryOtp?: string;
 }
 
 export interface Vendor {
@@ -42,6 +45,10 @@ export interface Vendor {
   image?: string;
   role: 'vendor' | 'superadmin' | 'collegeadmin';
   campusId?: string | { _id: string, name: string, code: string };
+  supportedServices?: string[];
+  deliveryCharge?: number;
+  tableServiceCharge?: number;
+  hostelServiceCharge?: number;
   subscription?: {
     status: 'Active' | 'Suspended';
     validUntil: string;
@@ -67,12 +74,13 @@ interface StoreState {
   updateCartQuantity: (itemId: number, quantity: number) => void;
   clearCart: () => void;
   getCartTotal: () => number;
-  createOrder: (paymentMethod: 'UPI' | 'Cash', orderType: 'Pickup' | 'Table' | 'Delivery') => Order;
+  createOrder: (paymentMethod: string, orderType: 'Pickup' | 'Table' | 'Hostel' | 'Classroom') => Order;
   updateOrderStatus: (orderId: number, status: Order['status']) => Promise<void>;
   updateOrderPaymentStatus: (orderId: number, paymentStatus: 'Pending' | 'Paid') => Promise<void>;
   getTodayOrders: () => Order[];
   getTodayRevenue: () => number;
   updateMenuItem: (itemId: number, updates: Partial<MenuItem>) => Promise<void>;
+  addMenuItem: (item: Omit<MenuItem, 'id'>) => Promise<void>;
 }
 
 export const useStore = create<StoreState>((set, get) => {
@@ -81,8 +89,12 @@ export const useStore = create<StoreState>((set, get) => {
     set({ orders: initialOrders });
   });
 
-  socket.on('initial_menu', (initialMenu) => {
-    set({ menu: initialMenu });
+  socket.on('initial_menu', (initialMenu: any[]) => {
+    const mapped = initialMenu.map(item => ({
+      ...item,
+      id: item.menuId || item.id
+    }));
+    set({ menu: mapped });
   });
 
   socket.on('new_order_pulse', (newOrder) => {
@@ -107,10 +119,11 @@ export const useStore = create<StoreState>((set, get) => {
     }));
   });
 
-  socket.on('menu_updated', (updatedItem: MenuItem) => {
+  socket.on('menu_updated', (updatedItem: any) => {
+    const itemWithId = { ...updatedItem, id: updatedItem.menuId || updatedItem.id };
     set((state) => ({
       menu: state.menu.map((item) =>
-        item.id === updatedItem.id ? updatedItem : item
+        item.id === itemWithId.id ? itemWithId : item
       ),
     }));
   });
@@ -282,6 +295,26 @@ export const useStore = create<StoreState>((set, get) => {
             item.id === itemId ? { ...item, ...updates } : item
           ),
         }));
+      }
+    },
+    addMenuItem: async (item) => {
+      try {
+        const response = await fetch(`${API_URL}/api/menu`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(item),
+        });
+        const data = await response.json();
+        if (data.success) {
+          // The socket event 'menu_updated' will handle the local state update
+          // but we map it just in case
+          const newItem = { ...data.item, id: data.item.menuId || data.item.id };
+          set((state) => ({
+            menu: [...state.menu, newItem]
+          }));
+        }
+      } catch (err) {
+        console.error('Failed to add menu item:', err);
       }
     },
   };

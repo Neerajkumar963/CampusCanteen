@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useStore, API_URL } from '../../store/useStore';
-import { Store, Plus, X } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Store, Plus, X, Link as LinkIcon, QrCode, Copy, Check } from 'lucide-react';
 
 interface CampusVendor {
     _id: string;
     vendorId: string;
+    loginToken?: string;
     name: string;
     description: string;
     subscription?: {
@@ -28,6 +30,8 @@ export default function ManageCanteens() {
     const [description, setDescription] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const [qrCanteen, setQrCanteen] = useState<CampusVendor | null>(null);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
 
     const fetchCanteens = async () => {
         if (!currentVendor || currentVendor.role !== 'collegeadmin') return;
@@ -115,6 +119,12 @@ export default function ManageCanteens() {
             console.error('Failed to toggle status:', err);
         }
     };
+    const handleCopyLink = (token: string, canteenId: string) => {
+        const link = `${window.location.origin}/vendor-login?token=${token}`;
+        navigator.clipboard.writeText(link);
+        setCopiedId(canteenId);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
 
     if (loading) {
         return <div className="p-6 text-center text-[#6B6B6B]">Loading Canteens...</div>;
@@ -180,15 +190,37 @@ export default function ManageCanteens() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button
-                                            onClick={() => toggleVendorStatus(canteen._id, canteen.subscription?.status || 'Active')}
-                                            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${canteen.subscription?.status === 'Active'
-                                                ? 'text-red-600 bg-red-50 hover:bg-red-100'
-                                                : 'text-[#22C55E] bg-[#F0FDF4] hover:bg-green-100'
-                                                }`}
-                                        >
-                                            {canteen.subscription?.status === 'Active' ? 'Suspend' : 'Activate'}
-                                        </button>
+                                        <div className="flex items-center justify-end gap-2">
+                                            {canteen.loginToken && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleCopyLink(canteen.loginToken!, canteen._id)}
+                                                        title="Copy Login Link"
+                                                        className={`p-2 rounded-lg transition-all ${copiedId === canteen._id
+                                                            ? 'bg-green-50 text-green-600'
+                                                            : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}
+                                                    >
+                                                        {copiedId === canteen._id ? <Check size={18} /> : <LinkIcon size={18} />}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setQrCanteen(canteen)}
+                                                        title="Show QR Code"
+                                                        className="p-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-all"
+                                                    >
+                                                        <QrCode size={18} />
+                                                    </button>
+                                                </>
+                                            )}
+                                            <button
+                                                onClick={() => toggleVendorStatus(canteen._id, canteen.subscription?.status || 'Active')}
+                                                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${canteen.subscription?.status === 'Active'
+                                                    ? 'text-red-600 bg-red-50 hover:bg-red-100'
+                                                    : 'text-[#22C55E] bg-[#F0FDF4] hover:bg-green-100'
+                                                    }`}
+                                            >
+                                                {canteen.subscription?.status === 'Active' ? 'Suspend' : 'Activate'}
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -282,6 +314,42 @@ export default function ManageCanteens() {
                             </button>
                         </form>
                     </div>
+                </div>
+            )}
+
+            {/* QR Code Modal */}
+            {qrCanteen && (
+                <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden"
+                    >
+                        <div className="p-6 text-center border-b border-gray-100">
+                            <h3 className="text-xl font-bold text-gray-900">{qrCanteen.name}</h3>
+                            <p className="text-sm text-gray-500">Secure Backend Login Link</p>
+                        </div>
+
+                        <div className="p-8 flex flex-col items-center">
+                            <div className="bg-white p-4 rounded-2xl shadow-inner border border-gray-100">
+                                <img
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`${window.location.origin}/vendor-login?token=${qrCanteen.loginToken}`)}`}
+                                    alt="Login QR"
+                                    className="w-48 h-48"
+                                />
+                            </div>
+                            <p className="mt-6 text-xs text-gray-400 font-medium uppercase tracking-widest">Scan to access dashboard</p>
+                        </div>
+
+                        <div className="p-6 bg-gray-50">
+                            <button
+                                onClick={() => setQrCanteen(null)}
+                                className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold text-lg hover:bg-black transition-all shadow-lg active:scale-95"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </motion.div>
                 </div>
             )}
         </div>

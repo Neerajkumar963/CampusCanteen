@@ -36,12 +36,12 @@ const orderSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['UPI', 'Cash'],
+    enum: ['Online', 'Cash', 'Card', 'UPI', 'Netbanking', 'Wallet'],
     required: true
   },
   orderType: {
     type: String,
-    enum: ['counter', 'table', 'hostel', 'classroom', 'Pickup', 'Table', 'Delivery'],
+    enum: ['Pickup', 'Table', 'Hostel', 'Classroom'],
     required: true
   },
   serviceId: {
@@ -57,7 +57,8 @@ const orderSchema = new mongoose.Schema({
     default: 'Pending'
   },
   customerName: String,
-  customerPhone: String
+  customerPhone: String,
+  deliveryOtp: String
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);

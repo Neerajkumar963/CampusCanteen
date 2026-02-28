@@ -14,6 +14,11 @@ const collegeAdminSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  },
   campusId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Campus',

@@ -13,6 +13,8 @@ import CollegeDashboard from './pages/admin/CollegeDashboard';
 import ManageCanteens from './pages/admin/ManageCanteens';
 import CollegeOrders from './pages/admin/CollegeOrders';
 import CollegeAnalytics from './pages/admin/CollegeAnalytics';
+import RegisterCampus from './pages/RegisterCampus';
+import VendorLogin from './pages/VendorLogin';
 import { useStore } from './store/useStore';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -32,6 +34,14 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     Component: Login,
+  },
+  {
+    path: '/register-campus',
+    Component: RegisterCampus,
+  },
+  {
+    path: '/vendor-login',
+    Component: VendorLogin,
   },
   {
     path: '/admin',

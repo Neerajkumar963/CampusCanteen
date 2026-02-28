@@ -46,6 +46,18 @@ export default function AdminLayout() {
 
   const menuItems = currentVendor?.role === 'collegeadmin' ? collegeAdminMenuItems : vendorMenuItems;
 
+  if (currentVendor?.role === 'superadmin') {
+    return (
+      <div className="min-h-screen bg-[#FFFAF5] flex items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center">
+          <h2 className="text-2xl font-bold text-[#1E1E1E] mb-4">Wrong Portal</h2>
+          <p className="text-[#6B6B6B] mb-6">This portal is for College Admins and Canteens. Please use the Super Admin dashboard.</p>
+          <button onClick={handleLogout} className="px-6 py-2 bg-[#FF6B00] text-white rounded-xl font-bold">Logout</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FFFAF5] flex">
       {/* Mobile Overlay */}

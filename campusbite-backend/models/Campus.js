@@ -18,6 +18,11 @@ const campusSchema = new mongoose.Schema({
     type: String,
     enum: ['Active', 'Disabled'],
     default: 'Active'
+  },
+  qrToken: {
+    type: String,
+    unique: true,
+    sparse: true // Allow nulls for now during migration
   }
 }, { timestamps: true });
 

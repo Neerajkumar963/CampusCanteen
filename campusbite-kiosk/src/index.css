@@ -23,15 +23,45 @@
   font-family: var(--font-main);
 }
 
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  overflow: hidden !important;
+  height: 100dvh;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  overscroll-behavior: none; /* Prevent pull-to-refresh and bounce */
+}
+
+/* Hide all scrollbars for a clean kiosk feel */
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
 body {
   background: white;
   color: var(--text-main);
-  overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Ensure Razorpay iframe is not blocked by parent layout issues */
+iframe {
+  max-width: 100% !important;
 }
 
 .kiosk-container {
-  height: 100vh;
   height: 100dvh;
   width: 100%;
   background: white;
@@ -47,6 +77,8 @@ body {
   flex-direction: column;
   background: white;
   min-height: 0;
+  height: 100%; /* Ensure screens take full height minus header */
+  overflow: hidden; /* Each screen handles its own internal scroll if needed */
 }
 
 /* Header Refinement */
@@ -91,11 +123,10 @@ header.app-header.sticky {
   cursor: pointer;
 }
 
-/* Blinkit Layout */
 .menu-layout {
   display: flex;
   flex: 1;
-  height: calc(100vh - 64px);
+  height: calc(100dvh - 64px);
   overflow: hidden;
 }
 
@@ -201,7 +232,6 @@ header.app-header.sticky {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem;
 }
 
 .item-img-container img {
@@ -258,6 +288,41 @@ header.app-header.sticky {
 .add-item-btn:active {
   background: var(--primary);
   color: white;
+}
+
+.unavailable-btn {
+  background: transparent !important;
+  color: #9CA3AF !important;
+  border: 1px solid #E5E7EB !important;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.sold-out-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  z-index: 2;
+}
+
+.sold-out-tag {
+  background: #ef4444;
+  color: white;
+  padding: 6px 12px;
+  font-weight: 800;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  text-transform: uppercase;
+  transform: rotate(-10deg);
+  border: 2px solid white;
 }
 
 /* Elegant Bottom Bar */
@@ -330,14 +395,14 @@ header.app-header.sticky {
 
 .welcome-screen {
   background: var(--bg-main);
-  min-height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   padding: 2rem;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .welcome-logo-box {
@@ -461,21 +526,31 @@ input[type=number] {
 }
 
 .btn-black-border {
-  background: #F3F4F6;
-  border: 2px solid #1A1A1A;
+  background: white;
+  border: 1px solid #1A1A1A;
   color: #1A1A1A;
-  font-weight: 800;
+  font-weight: 700;
   padding: 1.1rem;
   border-radius: 14px;
+  transition: 0.2s;
+}
+
+.btn-black-border:active {
+  background: #F3F4F6;
 }
 
 .btn-ghost-border {
   background: white;
   border: 1px solid #EEE5DD;
-  color: var(--text-dim);
+  color: #1A1A1A;
   font-weight: 700;
   padding: 1.1rem;
   border-radius: 14px;
+  transition: 0.2s;
+}
+
+.btn-ghost-border:active {
+  background: #F3F4F6;
 }
 
 .bill-summary-icon {

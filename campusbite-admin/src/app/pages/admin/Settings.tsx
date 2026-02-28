@@ -4,15 +4,72 @@ import { useStore, API_URL } from '../../store/useStore';
 
 export default function Settings() {
   const currentVendor = useStore((state) => state.currentVendor);
-  const [deliveryCharge, setDeliveryCharge] = useState('20');
-  const [tableServiceCharge, setTableServiceCharge] = useState('10');
-  const [taxPercent, setTaxPercent] = useState('5');
+  const [deliveryCharge, setDeliveryCharge] = useState(currentVendor?.deliveryCharge?.toString() || '20');
+  const [tableServiceCharge, setTableServiceCharge] = useState(currentVendor?.tableServiceCharge?.toString() || '10');
+  const [hostelServiceCharge, setHostelServiceCharge] = useState(currentVendor?.hostelServiceCharge?.toString() || '15');
+  const [services, setServices] = useState<string[]>(currentVendor?.supportedServices || ['counter', 'table', 'hostel', 'classroom']);
   const [saved, setSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
-    // In a real app, this would save to backend
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const toggleService = async (serviceId: string) => {
+    const newServices = services.includes(serviceId)
+      ? services.filter(s => s !== serviceId)
+      : [...services, serviceId];
+
+    // Update local state immediately for snappy UI
+    setServices(newServices);
+
+    // Auto-save to backend
+    if (currentVendor && currentVendor.vendorId && currentVendor.role !== 'superadmin' && currentVendor.role !== 'collegeadmin') {
+      try {
+        const response = await fetch(`${API_URL}/api/vendors/${currentVendor.vendorId}/services`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ supportedServices: newServices })
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          useStore.setState({ currentVendor: result.vendor });
+        } else {
+          console.error("Failed to auto-save services");
+        }
+      } catch (err) {
+        console.error("Network error saving services:", err);
+      }
+    }
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      if (currentVendor && currentVendor.vendorId && currentVendor.role !== 'superadmin' && currentVendor.role !== 'collegeadmin') {
+        const response = await fetch(`${API_URL}/api/vendors/${currentVendor.vendorId}/services`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            supportedServices: services,
+            deliveryCharge: Number(deliveryCharge),
+            tableServiceCharge: Number(tableServiceCharge),
+            hostelServiceCharge: Number(hostelServiceCharge)
+          })
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          // Update the localized store copy
+          useStore.setState({ currentVendor: result.vendor });
+        } else {
+          console.error("Failed to save services");
+        }
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -46,26 +103,51 @@ export default function Settings() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#1E1E1E] mb-2">Tax Percentage (%)</label>
+              <label className="block text-sm font-medium text-[#1E1E1E] mb-2">Hostel Service Charge (₹)</label>
               <input
                 type="number"
-                value={taxPercent}
-                onChange={(e) => setTaxPercent(e.target.value)}
+                value={hostelServiceCharge}
+                onChange={(e) => setHostelServiceCharge(e.target.value)}
                 className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
               />
-              <p className="text-xs text-[#6B6B6B] mt-1">GST or sales tax percentage</p>
+              <p className="text-xs text-[#6B6B6B] mt-1">Extra charge for hostel delivery</p>
             </div>
           </div>
 
           <div className="pt-4 border-t border-[#E5E5E5]">
             <button
               onClick={handleSave}
+              disabled={isSaving}
               className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${saved ? 'bg-[#22C55E] text-white' : 'bg-[#FF6B00] text-white hover:bg-[#FF8A00]'
-                }`}
+                } ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
               <Save className="w-5 h-5" />
-              {saved ? 'Settings Saved!' : 'Save Settings'}
+              {isSaving ? 'Saving...' : saved ? 'Settings Saved!' : 'Save Settings'}
             </button>
+          </div>
+
+          <div className="pt-6 border-t border-[#E5E5E5] space-y-4">
+            <h3 className="text-md font-semibold text-[#1E1E1E]">Delivery Options</h3>
+            <p className="text-xs text-[#6B6B6B] mb-2">Enable or disable delivery methods for your customers below. Changes will instantly update the CampusBite Kiosks.</p>
+
+            <div className="space-y-2">
+              {[
+                { id: 'counter', title: 'Self Pickup' },
+                { id: 'table', title: 'Table Service' },
+                { id: 'hostel', title: 'Hostel Delivery' },
+                { id: 'classroom', title: 'Classroom Delivery' }
+              ].map(opt => (
+                <label key={opt.id} className="flex items-center gap-3 p-3 border border-[#E5E5E5] rounded-lg bg-[#FFFAF5] cursor-pointer hover:border-[#FF6B00]/50 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={services.includes(opt.id)}
+                    onChange={() => toggleService(opt.id)}
+                    className="w-5 h-5 rounded border-gray-300 text-[#FF6B00] focus:ring-[#FF6B00]"
+                  />
+                  <span className="font-medium text-[#1E1E1E]">{opt.title}</span>
+                </label>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -106,7 +188,7 @@ export default function Settings() {
                   <input
                     type="time"
                     defaultValue="08:00"
-                    className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                    className="w-full px-3 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00] text-sm tabular-nums"
                   />
                 </div>
                 <div>
@@ -114,7 +196,7 @@ export default function Settings() {
                   <input
                     type="time"
                     defaultValue="20:00"
-                    className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                    className="w-full px-3 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00] text-sm tabular-nums"
                   />
                 </div>
               </div>

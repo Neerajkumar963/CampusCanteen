@@ -6,6 +6,11 @@ const vendorSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  loginToken: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
   password: {
     type: String,
     required: true
@@ -24,6 +29,22 @@ const vendorSchema = new mongoose.Schema({
     type: String,
     enum: ['vendor', 'superadmin'],
     default: 'vendor'
+  },
+  supportedServices: {
+    type: [String],
+    default: ['counter', 'table', 'hostel', 'classroom']
+  },
+  deliveryCharge: {
+    type: Number,
+    default: 20
+  },
+  tableServiceCharge: {
+    type: Number,
+    default: 10
+  },
+  hostelServiceCharge: {
+    type: Number,
+    default: 15
   },
   campusId: {
     type: mongoose.Schema.Types.ObjectId,
