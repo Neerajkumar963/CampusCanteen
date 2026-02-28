@@ -958,8 +958,7 @@ function CheckoutScreen({ cart, serviceFee, total, serviceType, serviceId, onBac
                           instruments: [
                             { method: 'upi' },
                             { method: 'card' },
-                            { method: 'netbanking' },
-                            { method: 'wallet' }
+                            { method: 'netbanking' }
                           ]
                         }
                       },
