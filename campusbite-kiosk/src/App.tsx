@@ -46,7 +46,7 @@ interface CartItem extends MenuItem {
 }
 
 type ServiceType = 'counter' | 'table' | 'hostel' | 'classroom';
-type Screen = 'welcome' | 'canteen-selector' | 'menu' | 'service' | 'verify' | 'checkout' | 'success';
+type Screen = 'welcome' | 'canteen-selector' | 'menu' | 'service' | 'verify' | 'checkout' | 'success' | 'invalid';
 
 interface Vendor {
   id: string;
@@ -80,7 +80,10 @@ const SERVICE_FEES: Record<ServiceType, number> = {
 
 // --- App Component ---
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('welcome');
+  const initialHash = new URLSearchParams(window.location.search).get('c');
+  const isValidHash = initialHash && CAMPUS_HASH_MAP[initialHash];
+
+  const [screen, setScreen] = useState<Screen>(isValidHash ? 'welcome' : 'invalid');
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [serviceType, setServiceType] = useState<ServiceType>('counter');
@@ -93,8 +96,8 @@ export default function App() {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [isVerified, setIsVerified] = useState(false);
-  const [campusCode, setCampusCode] = useState<string>('');
-  const [isInvalidUrlModalOpen, setIsInvalidUrlModalOpen] = useState(false);
+  const [campusCode, setCampusCode] = useState<string>(isValidHash ? CAMPUS_HASH_MAP[initialHash] : '');
+  const [isInvalidUrlModalOpen, setIsInvalidUrlModalOpen] = useState(!isValidHash);
 
   const menuItems = useStore(state => state.menu);
   const fetchMenu = useStore(state => state.fetchMenu);
@@ -201,6 +204,17 @@ export default function App() {
   return (
     <div className="kiosk-container relative">
       <AnimatePresence mode="wait">
+        {screen === 'invalid' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="screen flex-col items-center justify-center p-8 text-center" style={{ background: '#FFFAF5', height: '100vh', justifyContent: 'center' }}>
+            <div style={{ background: '#FFEBE0', padding: '1.5rem', borderRadius: '50%', marginBottom: '1.5rem' }}>
+              <X size={48} color="var(--primary)" />
+            </div>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Use Valid Scanner</h2>
+            <p style={{ color: 'var(--text-dim)', fontSize: '1rem', lineHeight: 1.5 }}>
+              Please scan a valid CampusBite QR code placed at your college or canteen to order food.
+            </p>
+          </motion.div>
+        )}
         {screen === 'welcome' && (
           <WelcomeScreen key="welcome" onStart={() => {
             if (!campusCode) {
