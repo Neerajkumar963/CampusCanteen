@@ -304,7 +304,7 @@ export default function MenuManagement() {
                   </div>
                 </div>
 
-                <div className="pt-6 border-t border-gray-100 flex flex-col sm:flex-row gap-4 sticky bottom-0 bg-white pb-2">
+                <div className="pt-10 border-t border-gray-100 flex flex-col sm:flex-row gap-4">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
