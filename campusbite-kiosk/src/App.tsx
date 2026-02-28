@@ -404,7 +404,7 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
       <div className="welcome-logo-box">
         <Utensils size={60} color="var(--primary)" />
       </div>
-      <h1 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1rem', color: '#000' }}>CampusBite</h1>
+      <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1rem', color: '#000', letterSpacing: '-0.02em' }}>CampusBite</h1>
       <p style={{ color: 'var(--text-dim)', fontSize: '1.1rem', marginBottom: '2.5rem', maxWidth: '300px' }}>
         Fresh food from your favorite campus canteens.
       </p>

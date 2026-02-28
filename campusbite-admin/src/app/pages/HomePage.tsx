@@ -30,7 +30,7 @@ export default function HomePage() {
           <span style={{ fontSize: '60px', lineHeight: 1 }}>🍔</span>
         </motion.div>
 
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1rem', color: '#000' }}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1rem', color: '#000', letterSpacing: '-0.02em' }}>
           CampusBite
         </h1>
 
