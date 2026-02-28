@@ -783,7 +783,9 @@ function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack
             selected === 'table' ? !serviceId : (!blockNum || !roomNum)
           )}
         >
-          Pay Now
+          {selected !== 'counter' && (selected === 'table' ? !serviceId : (!blockNum || !roomNum))
+            ? (selected === 'table' ? 'Enter Table Number' : 'Enter Block & Room')
+            : 'Pay Now'}
         </button>
       </div>
     </motion.div>
