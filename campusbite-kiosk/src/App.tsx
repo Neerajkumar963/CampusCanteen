@@ -316,7 +316,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* Floating My Orders Widget */}
-      {screen !== 'success' && activeOrders.length > 0 && !isMyOrdersOpen && (
+      {screen !== 'success' && screen !== 'invalid' && activeOrders.length > 0 && !isMyOrdersOpen && (
         <button
           onClick={() => setIsMyOrdersOpen(true)}
           style={{
