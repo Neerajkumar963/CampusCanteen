@@ -1,6 +1,6 @@
 import { useStore } from '../../store/useStore';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, DollarSign, ShoppingBag } from 'lucide-react';
+import { TrendingUp, IndianRupee, ShoppingBag } from 'lucide-react';
 
 export default function Analytics() {
   const orders = useStore((state) => state.orders);
@@ -46,7 +46,7 @@ export default function Analytics() {
         <div className="bg-white rounded-2xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-[#FFF5EE] rounded-xl flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-[#FF6B00]" />
+              <IndianRupee className="w-6 h-6 text-[#FF6B00]" />
             </div>
             <TrendingUp className="w-5 h-5 text-[#22C55E]" />
           </div>
@@ -68,7 +68,7 @@ export default function Analytics() {
         <div className="bg-white rounded-2xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-[#EFF6FF] rounded-xl flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-[#3B82F6]" />
+              <IndianRupee className="w-6 h-6 text-[#3B82F6]" />
             </div>
             <TrendingUp className="w-5 h-5 text-[#22C55E]" />
           </div>

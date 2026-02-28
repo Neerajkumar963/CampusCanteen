@@ -1,5 +1,5 @@
 import { useStore } from '../../store/useStore';
-import { ShoppingBag, DollarSign, UtensilsCrossed, Clock } from 'lucide-react';
+import { ShoppingBag, IndianRupee, UtensilsCrossed, Clock } from 'lucide-react';
 import { mockMenuItems } from '../../data/mockMenu';
 import { motion } from 'motion/react';
 
@@ -23,7 +23,7 @@ export default function Dashboard() {
       iconColor: 'text-[#FF6B00]',
     },
     {
-      icon: DollarSign,
+      icon: IndianRupee,
       label: "Today's Revenue",
       value: `₹${todayRevenue}`,
       bgColor: 'bg-[#F0FDF4]',

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useStore, API_URL } from '../../store/useStore';
-import { Building2, Store, ShoppingBag, DollarSign } from 'lucide-react';
+import { Building2, Store, ShoppingBag, IndianRupee } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface CollegeAnalytics {
@@ -56,7 +56,7 @@ export default function CollegeDashboard() {
             iconColor: 'text-[#FF6B00]',
         },
         {
-            icon: DollarSign,
+            icon: IndianRupee,
             label: "Campus Monthly Revenue",
             value: `₹${analytics?.monthlyRevenue || 0}`,
             bgColor: 'bg-[#F0FDF4]',
