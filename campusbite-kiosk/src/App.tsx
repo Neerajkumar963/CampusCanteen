@@ -768,7 +768,13 @@ function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack
       }}>
         <button
           className="primary-btn"
-          style={{ width: '100%', padding: '1.25rem', borderRadius: '16px', fontSize: '1.1rem' }}
+          style={{
+            width: '100%',
+            padding: '1.25rem',
+            borderRadius: '16px',
+            fontSize: '1.1rem',
+            background: (selected !== 'counter' && (selected === 'table' ? !serviceId : (!blockNum || !roomNum))) ? '' : '#10B981'
+          }}
           onClick={() => {
             const finalId = (selected === 'hostel' || selected === 'classroom')
               ? `Block ${blockNum}, Room ${roomNum}`
@@ -780,7 +786,7 @@ function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack
             selected === 'table' ? !serviceId : (!blockNum || !roomNum)
           )}
         >
-          Pay ₹{total}
+          Pay Now
         </button>
       </div>
     </motion.div>
