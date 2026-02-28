@@ -54,6 +54,7 @@ interface Vendor {
   description: string;
   image: string;
   campus: string;
+  supportedServices?: ServiceType[];
 }
 
 // --- Data ---
@@ -63,10 +64,10 @@ const CAMPUS_HASH_MAP: Record<string, string> = {
 };
 
 const VENDORS: Vendor[] = [
-  { id: 'canteen-a', name: 'Main Canteen', description: 'Burgers, Sandwiches & Beverages', image: 'https://images.unsplash.com/photo-1567529854338-fc097b962123?w=800', campus: 'GGI' },
-  { id: 'canteen-b', name: 'South Side Cafe', description: 'Coffee & Snacks', image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800', campus: 'GGI' },
-  { id: 'stationery', name: 'Stationery', description: 'Pens, Books & more', image: 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=800', campus: 'GGI' },
-  { id: 'canteen-c', name: 'LPU Mega Canteen', description: 'North & South Indian', image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800', campus: 'LPU' },
+  { id: 'canteen-a', name: 'Main Canteen', description: 'Burgers, Sandwiches & Beverages', image: 'https://images.unsplash.com/photo-1567529854338-fc097b962123?w=800', campus: 'GGI', supportedServices: ['counter', 'table', 'hostel', 'classroom'] },
+  { id: 'canteen-b', name: 'South Side Cafe', description: 'Coffee & Snacks', image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800', campus: 'GGI', supportedServices: ['counter', 'table'] },
+  { id: 'stationery', name: 'Stationery', description: 'Pens, Books & more', image: 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=800', campus: 'GGI', supportedServices: ['counter', 'hostel'] },
+  { id: 'canteen-c', name: 'LPU Mega Canteen', description: 'North & South Indian', image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800', campus: 'LPU', supportedServices: ['counter', 'table', 'hostel', 'classroom'] },
 ];
 
 
@@ -205,8 +206,8 @@ export default function App() {
       <AnimatePresence mode="wait">
         {screen === 'invalid' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="screen p-8 text-center" style={{ background: '#FFFAF5', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ background: '#FFEBE0', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '80px', height: '80px', borderRadius: '50%', marginBottom: '1.5rem' }}>
-              <X size={48} color="var(--primary)" />
+            <div style={{ background: '#FFEBE0', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '80px', height: '80px', borderRadius: '50%', marginBottom: '1.5rem', paddingRight: '2px' }}>
+              <X size={44} color="var(--primary)" strokeWidth={2.5} />
             </div>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Use Valid Scanner</h2>
             <p style={{ color: 'var(--text-dim)', fontSize: '1rem', lineHeight: 1.5, textAlign: 'center', padding: '0 1rem' }}>
@@ -225,6 +226,11 @@ export default function App() {
             onSelect={(vendor: Vendor) => {
               setSelectedVendor(vendor);
               setCart([]); // Reset cart on canteen change
+              if (vendor.supportedServices && vendor.supportedServices.length > 0) {
+                setServiceType(vendor.supportedServices[0]);
+              } else {
+                setServiceType('counter');
+              }
               setScreen('menu');
             }}
           />
@@ -261,6 +267,7 @@ export default function App() {
               }
             }}
             vendorName={selectedVendor?.name}
+            supportedServices={selectedVendor?.supportedServices}
             onUpdateQty={updateQuantity}
           />
         )}
@@ -592,7 +599,7 @@ function MenuScreen({ vendorName, vendorId, onBack, onNext, selectedCategory, on
   );
 }
 
-function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack, onNext, vendorName, onUpdateQty }: any) {
+function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack, onNext, vendorName, onUpdateQty, supportedServices }: any) {
   const allOptions = [
     { id: 'counter', title: 'Self Pickup', price: 'FREE', icon: <Utensils size={24} /> },
     { id: 'table', title: 'Table Service', price: 'FREE', icon: <MapPin size={24} /> },
@@ -600,10 +607,12 @@ function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack
     { id: 'classroom', title: 'Classroom Delivery', price: '+ ₹15', icon: <Smartphone size={24} /> },
   ];
 
-  // Logic: Show Classroom only for food canteens, not stationery
-  const options = vendorName?.toLowerCase().includes('stationery')
-    ? allOptions.slice(0, 3)
-    : allOptions;
+  // Logic: Filter options based on explicitly supported services, otherwise follow legacy fallback logic
+  const options = supportedServices && supportedServices.length > 0
+    ? allOptions.filter(opt => supportedServices.includes(opt.id))
+    : (vendorName?.toLowerCase().includes('stationery')
+      ? allOptions.slice(0, 3) // Old default fallback
+      : allOptions);
 
   const [blockNum, setBlockNum] = useState('');
   const [roomNum, setRoomNum] = useState('');
