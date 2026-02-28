@@ -627,7 +627,6 @@ function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack
 
   const subtotal = cart.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
   const serviceFee = selected === 'counter' || selected === 'table' ? 0 : (selected === 'classroom' ? 15 : 20);
-  const total = subtotal + serviceFee;
 
   const handleBlockChange = (val: string) => {
     // Only letters allowed for Block
@@ -773,6 +772,7 @@ function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack
             padding: '1.25rem',
             borderRadius: '16px',
             fontSize: '1.1rem',
+            fontWeight: 800,
             background: (selected !== 'counter' && (selected === 'table' ? !serviceId : (!blockNum || !roomNum))) ? '' : '#10B981'
           }}
           onClick={() => {
