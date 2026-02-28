@@ -53,14 +53,15 @@ interface Vendor {
   name: string;
   description: string;
   image: string;
+  campus: string;
 }
 
 // --- Data ---
 const VENDORS: Vendor[] = [
-  { id: 'canteen-a', name: 'Canteen A', description: 'Main Cafeteria', image: 'https://images.unsplash.com/photo-1567529854338-fc097b962123?w=800' },
-  { id: 'canteen-b', name: 'Canteen B', description: 'South Side Cafe', image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800' },
-  { id: 'stationery', name: 'Stationery', description: 'Pens, Books & more', image: 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=800' },
-  { id: 'canteen-c', name: 'Canteen C', description: 'The Juice Corner', image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800' },
+  { id: 'canteen-a', name: 'Main Canteen', description: 'Burgers, Sandwiches & Beverages', image: 'https://images.unsplash.com/photo-1567529854338-fc097b962123?w=800', campus: 'GGI' },
+  { id: 'canteen-b', name: 'South Side Cafe', description: 'Coffee & Snacks', image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800', campus: 'GGI' },
+  { id: 'stationery', name: 'Stationery', description: 'Pens, Books & more', image: 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=800', campus: 'GGI' },
+  { id: 'canteen-c', name: 'LPU Mega Canteen', description: 'North & South Indian', image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800', campus: 'LPU' },
 ];
 
 
@@ -87,6 +88,7 @@ export default function App() {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [isVerified, setIsVerified] = useState(false);
+  const [campusCode, setCampusCode] = useState<string>('');
 
   const menuItems = useStore(state => state.menu);
   const fetchMenu = useStore(state => state.fetchMenu);
@@ -94,6 +96,12 @@ export default function App() {
   const addOrder = useStore(state => state.addOrder);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('campus');
+    if (code) {
+      setCampusCode(code.toUpperCase());
+    }
+
     fetchMenu();
     socket.on('order_status_update', (data: any) => {
       // Check against orderId which is what the backend sends as 'id', or other common ID fields
@@ -187,11 +195,19 @@ export default function App() {
     <div className="kiosk-container relative">
       <AnimatePresence mode="wait">
         {screen === 'welcome' && (
-          <WelcomeScreen key="welcome" onStart={() => setScreen('canteen-selector')} />
+          <WelcomeScreen key="welcome" onStart={() => {
+            if (!campusCode) {
+              alert("Invalid URL. Please scan a valid Campus QR code to proceed.");
+              return;
+            }
+            setScreen('canteen-selector');
+          }} />
         )}
         {screen === 'canteen-selector' && (
           <CanteenSelectorScreen
             key="selector"
+            campusCode={campusCode}
+            vendors={VENDORS.filter(v => v.campus === campusCode)}
             onSelect={(vendor: Vendor) => {
               setSelectedVendor(vendor);
               setCart([]); // Reset cart on canteen change
@@ -419,7 +435,7 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
   );
 }
 
-function CanteenSelectorScreen({ onSelect }: { onSelect: (v: Vendor) => void }) {
+function CanteenSelectorScreen({ onSelect, campusCode, vendors }: { onSelect: (v: Vendor) => void, campusCode: string, vendors: Vendor[] }) {
   return (
     <motion.div
       initial={{ opacity: 0, x: 50 }}
@@ -427,11 +443,11 @@ function CanteenSelectorScreen({ onSelect }: { onSelect: (v: Vendor) => void }) 
       className="screen"
       style={{ padding: '2rem 1rem 8rem 1rem', overflowY: 'auto' }}
     >
-      <h1 style={{ fontSize: '1.75rem', fontWeight: 900, marginBottom: '0.25rem' }}>GGI Campus</h1>
+      <h1 style={{ fontSize: '1.75rem', fontWeight: 900, marginBottom: '0.25rem' }}>{campusCode} Campus</h1>
       <p style={{ color: 'var(--text-dim)', fontSize: '0.9rem', marginBottom: '2rem' }}>Select a canteen to browse menu</p>
 
       <div className="canteen-grid">
-        {VENDORS.map(vendor => (
+        {vendors.map(vendor => (
           <motion.div
             key={vendor.id}
             className="vendor-card"
