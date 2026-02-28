@@ -48,7 +48,7 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F7F4F1] flex items-center justify-center p-4">
+        <div className="min-h-screen bg-[#FFFAF5] flex items-center justify-center p-4">
             <div className="w-full max-w-md bg-white rounded-3xl shadow-lg p-8">
                 <div className="flex flex-col items-center justify-center gap-3 mb-8">
                     <div className="w-16 h-16 bg-[#FF6B00]/10 rounded-full flex items-center justify-center">
@@ -77,7 +77,7 @@ export default function Login() {
                                 type="text"
                                 value={vendorId}
                                 onChange={(e) => setVendorId(e.target.value)}
-                                className="w-full pl-12 pr-4 py-3 bg-[#F7F4F1] border border-[#E5E5E5] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B00] transition-shadow"
+                                className="w-full pl-12 pr-4 py-3 bg-[#FFFAF5] border border-[#E5E5E5] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B00] transition-shadow"
                                 placeholder="Enter admin ID"
                                 required
                             />
@@ -93,7 +93,7 @@ export default function Login() {
                                 type={showPassword ? 'text' : 'password'}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-4 pr-12 py-3 bg-[#F7F4F1] border border-[#E5E5E5] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B00] transition-shadow"
+                                className="w-full pl-4 pr-12 py-3 bg-[#FFFAF5] border border-[#E5E5E5] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B00] transition-shadow"
                                 placeholder="••••••••"
                                 required
                             />

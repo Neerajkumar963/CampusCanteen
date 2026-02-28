@@ -167,7 +167,7 @@ export default function Combos() {
                 value={newComboName}
                 onChange={(e) => setNewComboName(e.target.value)}
                 placeholder="e.g., Lunch Combo"
-                className="w-full px-4 py-2 bg-[#F7F4F1] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
               />
             </div>
 
@@ -175,7 +175,7 @@ export default function Combos() {
               <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
                 Select Items
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto p-2 bg-[#F7F4F1] rounded-lg">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto p-2 bg-[#FFFAF5] rounded-lg">
                 {menuItems.map((item) => (
                   <label
                     key={item.id}
@@ -215,7 +215,7 @@ export default function Combos() {
                 placeholder="10"
                 min="0"
                 max="100"
-                className="w-full px-4 py-2 bg-[#F7F4F1] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
               />
             </div>
 

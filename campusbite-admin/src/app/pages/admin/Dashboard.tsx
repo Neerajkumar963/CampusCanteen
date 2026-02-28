@@ -111,7 +111,7 @@ export default function Dashboard() {
         ) : (
           <>
             {/* Mobile Card View */}
-            <div className="block md:hidden p-4 space-y-4 bg-[#F7F4F1]">
+            <div className="block md:hidden p-4 space-y-4 bg-[#FFFAF5]">
               {orders.slice().reverse().map((order) => (
                 <div key={order.orderId} className="bg-white border border-[#E5E5E5] rounded-xl p-4 shadow-sm flex flex-col gap-3">
                   <div className="flex justify-between items-center border-b border-[#E5E5E5] pb-2">
@@ -175,7 +175,7 @@ export default function Dashboard() {
             {/* Desktop Table View */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-[#F7F4F1]">
+                <thead className="bg-[#FFFAF5]">
                   <tr>
                     <th className="px-6 py-3 text-left text-sm font-semibold text-[#1E1E1E]">
                       Token
@@ -202,7 +202,7 @@ export default function Dashboard() {
                 </thead>
                 <tbody className="divide-y divide-[#E5E5E5]">
                   {orders.slice().reverse().map((order) => (
-                    <tr key={order.orderId} className="hover:bg-[#F7F4F1] transition-colors">
+                    <tr key={order.orderId} className="hover:bg-[#FFFAF5] transition-colors">
                       <td className="px-6 py-4">
                         <span className="font-semibold text-[#FF6B00]">
                           #{order.tokenNumber}

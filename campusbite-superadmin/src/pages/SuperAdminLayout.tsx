@@ -44,7 +44,7 @@ export default function SuperAdminLayout() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F7F4F1] flex">
+        <div className="min-h-screen bg-[#FFFAF5] flex">
             {/* Mobile Sidebar Overlay */}
             {sidebarOpen && (
                 <div
@@ -83,7 +83,7 @@ export default function SuperAdminLayout() {
                                 }}
                                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isActive
                                     ? 'bg-[#FF6B00] text-white'
-                                    : 'text-[#6B6B6B] hover:bg-[#F7F4F1] hover:text-[#1E1E1E]'
+                                    : 'text-[#6B6B6B] hover:bg-[#FFFAF5] hover:text-[#1E1E1E]'
                                     }`}
                             >
                                 <Icon size={20} />

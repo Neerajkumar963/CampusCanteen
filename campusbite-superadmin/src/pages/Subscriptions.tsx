@@ -18,7 +18,7 @@ export default function Subscriptions() {
 
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#E5E5E5] overflow-x-auto">
                 <table className="w-full text-left">
-                    <thead className="bg-[#F7F4F1] border-b border-[#E5E5E5]">
+                    <thead className="bg-[#FFFAF5] border-b border-[#E5E5E5]">
                         <tr>
                             <th className="px-6 py-4 font-semibold text-[#1E1E1E] rounded-tl-xl whitespace-nowrap">Plan Details</th>
                             <th className="px-6 py-4 font-semibold text-[#1E1E1E] whitespace-nowrap">Location (Campus)</th>
@@ -32,7 +32,7 @@ export default function Subscriptions() {
                             const isExpired = vendor.subscription && new Date(vendor.subscription.validUntil) < new Date();
 
                             return (
-                                <tr key={vendor.vendorId} className="hover:bg-[#F7F4F1]/50 transition-colors">
+                                <tr key={vendor.vendorId} className="hover:bg-[#FFFAF5]/50 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-[#4F46E5]/10 flex items-center justify-center text-[#4F46E5]">

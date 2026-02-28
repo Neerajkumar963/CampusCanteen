@@ -2,6 +2,6 @@
 
 @layer base {
   body {
-    @apply antialiased text-[#1E1E1E] bg-[#F7F4F1];
+    @apply antialiased text-[#1E1E1E] bg-[#FFFAF5];
   }
 }

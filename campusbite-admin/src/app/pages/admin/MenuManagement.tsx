@@ -34,7 +34,7 @@ export default function MenuManagement() {
             onClick={() => setSelectedCategory('All')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedCategory === 'All'
               ? 'bg-[#FF6B00] text-white'
-              : 'bg-[#F7F4F1] text-[#6B6B6B] hover:bg-[#E5E5E5]'
+              : 'bg-[#FFFAF5] text-[#6B6B6B] hover:bg-[#E5E5E5]'
               }`}
           >
             All Items
@@ -45,7 +45,7 @@ export default function MenuManagement() {
               onClick={() => setSelectedCategory(category)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedCategory === category
                 ? 'bg-[#FF6B00] text-white'
-                : 'bg-[#F7F4F1] text-[#6B6B6B] hover:bg-[#E5E5E5]'
+                : 'bg-[#FFFAF5] text-[#6B6B6B] hover:bg-[#E5E5E5]'
                 }`}
             >
               {category}
@@ -81,7 +81,7 @@ export default function MenuManagement() {
                     type="number"
                     value={item.price}
                     onChange={(e) => handlePriceChange(item.id, e.target.value)}
-                    className="flex-1 px-3 py-2 bg-[#F7F4F1] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                    className="flex-1 px-3 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
                   />
                 </div>
               </div>

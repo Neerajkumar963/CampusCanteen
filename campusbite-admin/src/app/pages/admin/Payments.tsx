@@ -27,7 +27,7 @@ export default function Payments() {
 
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <div className="bg-[#F7F4F1] rounded-2xl p-6 flex items-center justify-center">
+            <div className="bg-[#FFFAF5] rounded-2xl p-6 flex items-center justify-center">
               <div className="bg-white rounded-xl p-6 shadow-sm">
                 <img
                   src={qrImage}
@@ -87,7 +87,7 @@ export default function Payments() {
         </h2>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-[#F7F4F1] rounded-xl">
+          <div className="flex items-center justify-between p-4 bg-[#FFFAF5] rounded-xl">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-[#FF6B00] rounded-lg flex items-center justify-center">
                 <QrCode className="w-6 h-6 text-white" />
@@ -102,7 +102,7 @@ export default function Payments() {
             <Switch checked={upiEnabled} onCheckedChange={setUpiEnabled} />
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-[#F7F4F1] rounded-xl">
+          <div className="flex items-center justify-between p-4 bg-[#FFFAF5] rounded-xl">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-[#22C55E] rounded-lg flex items-center justify-center">
                 <span className="text-2xl">💵</span>
@@ -133,7 +133,7 @@ export default function Payments() {
             <input
               type="text"
               placeholder="yourname@upi"
-              className="w-full px-4 py-2 bg-[#F7F4F1] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+              className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
             />
           </div>
 
@@ -144,7 +144,7 @@ export default function Payments() {
             <input
               type="text"
               placeholder="GGI Canteen"
-              className="w-full px-4 py-2 bg-[#F7F4F1] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+              className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
             />
           </div>
 

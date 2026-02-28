@@ -29,7 +29,7 @@ export default function Settings() {
                 type="number"
                 value={deliveryCharge}
                 onChange={(e) => setDeliveryCharge(e.target.value)}
-                className="w-full px-4 py-2 bg-[#F7F4F1] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
               />
               <p className="text-xs text-[#6B6B6B] mt-1">Flat delivery charge for all orders</p>
             </div>
@@ -40,7 +40,7 @@ export default function Settings() {
                 type="number"
                 value={tableServiceCharge}
                 onChange={(e) => setTableServiceCharge(e.target.value)}
-                className="w-full px-4 py-2 bg-[#F7F4F1] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
               />
               <p className="text-xs text-[#6B6B6B] mt-1">Service charge for table orders</p>
             </div>
@@ -51,7 +51,7 @@ export default function Settings() {
                 type="number"
                 value={taxPercent}
                 onChange={(e) => setTaxPercent(e.target.value)}
-                className="w-full px-4 py-2 bg-[#F7F4F1] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
               />
               <p className="text-xs text-[#6B6B6B] mt-1">GST or sales tax percentage</p>
             </div>
@@ -84,7 +84,7 @@ export default function Settings() {
             <input
               type="text"
               defaultValue={currentVendor?.role === 'collegeadmin' ? 'My Campus' : 'GGI Canteen'}
-              className="w-full px-4 py-2 bg-[#F7F4F1] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+              className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
             />
           </div>
 
@@ -93,7 +93,7 @@ export default function Settings() {
             <input
               type="tel"
               placeholder="+91 98765 43210"
-              className="w-full px-4 py-2 bg-[#F7F4F1] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+              className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
             />
           </div>
 
@@ -106,7 +106,7 @@ export default function Settings() {
                   <input
                     type="time"
                     defaultValue="08:00"
-                    className="w-full px-4 py-2 bg-[#F7F4F1] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                    className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
                   />
                 </div>
                 <div>
@@ -114,7 +114,7 @@ export default function Settings() {
                   <input
                     type="time"
                     defaultValue="20:00"
-                    className="w-full px-4 py-2 bg-[#F7F4F1] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                    className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
                   />
                 </div>
               </div>
@@ -147,7 +147,7 @@ export default function Settings() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#F7F4F1] p-4 rounded-xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#FFFAF5] p-4 rounded-xl">
           <div>
             <p className="text-xs text-[#6B6B6B] uppercase font-bold tracking-wider">Current Plan</p>
             <p className="text-[#1E1E1E] font-semibold">Standard Campus License</p>

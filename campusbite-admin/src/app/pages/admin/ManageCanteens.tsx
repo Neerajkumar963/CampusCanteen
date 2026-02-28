@@ -138,7 +138,7 @@ export default function ManageCanteens() {
             <div className="bg-white rounded-2xl shadow-sm border border-[#E5E5E5] overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-[#F7F4F1] border-b border-[#E5E5E5]">
+                        <thead className="bg-[#FFFAF5] border-b border-[#E5E5E5]">
                             <tr>
                                 <th className="px-6 py-4 text-left text-sm font-semibold text-[#1E1E1E]">Canteen Name</th>
                                 <th className="px-6 py-4 text-left text-sm font-semibold text-[#1E1E1E]">Vendor ID</th>
@@ -150,7 +150,7 @@ export default function ManageCanteens() {
                         </thead>
                         <tbody className="divide-y divide-[#E5E5E5]">
                             {canteens.map((canteen) => (
-                                <tr key={canteen._id} className="hover:bg-[#F7F4F1] transition-colors">
+                                <tr key={canteen._id} className="hover:bg-[#FFFAF5] transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-[#FFF5EE] rounded-xl flex items-center justify-center">
@@ -212,7 +212,7 @@ export default function ManageCanteens() {
                             <h2 className="text-xl font-bold text-[#1E1E1E]">Add New Canteen</h2>
                             <button
                                 onClick={() => setShowAddModal(false)}
-                                className="p-2 hover:bg-[#F7F4F1] rounded-lg transition-colors"
+                                className="p-2 hover:bg-[#FFFAF5] rounded-lg transition-colors"
                             >
                                 <X className="w-5 h-5 text-[#6B6B6B]" />
                             </button>
@@ -233,7 +233,7 @@ export default function ManageCanteens() {
                                     value={canteenName}
                                     onChange={(e) => setCanteenName(e.target.value)}
                                     placeholder="e.g. Science Block Cafe"
-                                    className="w-full px-4 py-2 bg-[#F7F4F1] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                                    className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
                                 />
                             </div>
 
@@ -245,7 +245,7 @@ export default function ManageCanteens() {
                                     value={vendorId}
                                     onChange={(e) => setVendorId(e.target.value)}
                                     placeholder="e.g. science-cafe"
-                                    className="w-full px-4 py-2 bg-[#F7F4F1] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                                    className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
                                 />
                             </div>
 
@@ -257,7 +257,7 @@ export default function ManageCanteens() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="Enter a secure password"
-                                    className="w-full px-4 py-2 bg-[#F7F4F1] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                                    className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
                                 />
                             </div>
 
@@ -268,7 +268,7 @@ export default function ManageCanteens() {
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
                                     placeholder="e.g. Ground floor near library"
-                                    className="w-full px-4 py-2 bg-[#F7F4F1] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                                    className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
                                 />
                             </div>
 

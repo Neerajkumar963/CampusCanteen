@@ -56,13 +56,13 @@ export default function Campuses() {
                         placeholder="Search campuses..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-[#F7F4F1] border border-[#E5E5E5] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                        className="w-full pl-10 pr-4 py-2.5 bg-[#FFFAF5] border border-[#E5E5E5] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
                     />
                 </div>
 
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-[#F7F4F1] border-b border-[#E5E5E5]">
+                        <thead className="bg-[#FFFAF5] border-b border-[#E5E5E5]">
                             <tr>
                                 <th className="px-6 py-4 text-left text-sm font-semibold text-[#1E1E1E] rounded-tl-xl whitespace-nowrap">Campus Name</th>
                                 <th className="px-6 py-4 text-left text-sm font-semibold text-[#1E1E1E] whitespace-nowrap">Campus Code</th>
@@ -80,10 +80,10 @@ export default function Campuses() {
                                 </tr>
                             ) : (
                                 filteredCampuses.map((campus) => (
-                                    <tr key={campus._id} className="hover:bg-[#F7F4F1]/50 transition-colors">
+                                    <tr key={campus._id} className="hover:bg-[#FFFAF5]/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <img src={campus.logo} alt={campus.name} className="w-10 h-10 rounded-lg object-cover bg-[#F7F4F1]" />
+                                                <img src={campus.logo} alt={campus.name} className="w-10 h-10 rounded-lg object-cover bg-[#FFFAF5]" />
                                                 <span className="font-semibold text-[#1E1E1E]">{campus.name}</span>
                                             </div>
                                         </td>
@@ -119,7 +119,7 @@ export default function Campuses() {
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
                     <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <div className="px-6 py-4 border-b border-[#E5E5E5] flex items-center justify-between bg-[#F7F4F1]">
+                        <div className="px-6 py-4 border-b border-[#E5E5E5] flex items-center justify-between bg-[#FFFAF5]">
                             <h2 className="text-xl font-bold text-[#1E1E1E]">Add New Campus</h2>
                             <button
                                 onClick={() => setIsModalOpen(false)}
@@ -137,7 +137,7 @@ export default function Campuses() {
                                     required
                                     value={formData.name}
                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-[#F7F4F1] border border-[#E5E5E5] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                                    className="w-full px-4 py-2.5 bg-[#FFFAF5] border border-[#E5E5E5] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
                                     placeholder="e.g. Stanford Main Campus"
                                 />
                             </div>
@@ -149,7 +149,7 @@ export default function Campuses() {
                                     required
                                     value={formData.code}
                                     onChange={e => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                                    className="w-full px-4 py-2.5 bg-[#F7F4F1] border border-[#E5E5E5] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B00] uppercase"
+                                    className="w-full px-4 py-2.5 bg-[#FFFAF5] border border-[#E5E5E5] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B00] uppercase"
                                     placeholder="e.g. STAN-01"
                                 />
                             </div>
@@ -160,7 +160,7 @@ export default function Campuses() {
                                     type="url"
                                     value={formData.logo}
                                     onChange={e => setFormData({ ...formData, logo: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-[#F7F4F1] border border-[#E5E5E5] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                                    className="w-full px-4 py-2.5 bg-[#FFFAF5] border border-[#E5E5E5] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
                                     placeholder="https://..."
                                 />
                             </div>
@@ -169,7 +169,7 @@ export default function Campuses() {
                                 <button
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}
-                                    className="flex-1 px-4 py-2.5 border border-[#E5E5E5] text-[#1E1E1E] rounded-xl hover:bg-[#F7F4F1] transition-colors font-medium"
+                                    className="flex-1 px-4 py-2.5 border border-[#E5E5E5] text-[#1E1E1E] rounded-xl hover:bg-[#FFFAF5] transition-colors font-medium"
                                 >
                                     Cancel
                                 </button>

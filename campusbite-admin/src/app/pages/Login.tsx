@@ -40,7 +40,7 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F7F4F1] flex items-center justify-center p-4">
+        <div className="min-h-screen bg-[#FFFAF5] flex items-center justify-center p-4">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -73,7 +73,7 @@ export default function Login() {
                                 type="text"
                                 value={vendorId}
                                 onChange={(e) => setVendorId(e.target.value)}
-                                className="w-full pl-11 pr-4 py-3 bg-[#F7F4F1] border-2 border-transparent focus:border-[#FF6B00] rounded-xl outline-none font-medium transition-colors"
+                                className="w-full pl-11 pr-4 py-3 bg-[#FFFAF5] border-2 border-transparent focus:border-[#FF6B00] rounded-xl outline-none font-medium transition-colors"
                                 placeholder="e.g. canteen-a"
                                 required
                             />
@@ -92,7 +92,7 @@ export default function Login() {
                                 type={showPassword ? 'text' : 'password'}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-11 pr-12 py-3 bg-[#F7F4F1] border-2 border-transparent focus:border-[#FF6B00] rounded-xl outline-none font-medium transition-colors"
+                                className="w-full pl-11 pr-12 py-3 bg-[#FFFAF5] border-2 border-transparent focus:border-[#FF6B00] rounded-xl outline-none font-medium transition-colors"
                                 placeholder="••••••••"
                                 required
                             />

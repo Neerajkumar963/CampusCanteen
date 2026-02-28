@@ -63,7 +63,7 @@ export default function Revenue() {
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B6B6B', fontSize: 12 }} dy={10} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B6B6B', fontSize: 12 }} dx={-10} />
                                 <Tooltip
-                                    cursor={{ fill: '#F7F4F1' }}
+                                    cursor={{ fill: '#FFFAF5' }}
                                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                     formatter={(value: any) => [value, 'Orders']}
                                 />

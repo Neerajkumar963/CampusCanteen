@@ -46,7 +46,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="flex gap-4 bg-[#F7F4F1] p-3 rounded-xl"
+                    className="flex gap-4 bg-[#FFFAF5] p-3 rounded-xl"
                   >
                     <img
                       src={cartItem.item.image}

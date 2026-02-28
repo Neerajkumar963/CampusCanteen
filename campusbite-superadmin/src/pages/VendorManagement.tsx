@@ -48,13 +48,13 @@ export default function VendorManagement() {
                         placeholder="Search by name or Vendor ID..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-[#F7F4F1] border border-[#E5E5E5] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                        className="w-full pl-10 pr-4 py-2.5 bg-[#FFFAF5] border border-[#E5E5E5] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
                     />
                 </div>
 
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-[#F7F4F1] border-b border-[#E5E5E5]">
+                        <thead className="bg-[#FFFAF5] border-b border-[#E5E5E5]">
                             <tr>
                                 <th className="px-6 py-4 text-left text-sm font-semibold text-[#1E1E1E] rounded-tl-xl">Canteen Name</th>
                                 <th className="px-6 py-4 text-left text-sm font-semibold text-[#1E1E1E]">Vendor ID</th>
@@ -76,7 +76,7 @@ export default function VendorManagement() {
                                     const isExpired = vendor.subscription && new Date(vendor.subscription.validUntil) < new Date();
 
                                     return (
-                                        <tr key={vendor.vendorId} className="hover:bg-[#F7F4F1]/50 transition-colors">
+                                        <tr key={vendor.vendorId} className="hover:bg-[#FFFAF5]/50 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-full bg-[#FF6B00]/10 flex items-center justify-center text-[#FF6B00]">

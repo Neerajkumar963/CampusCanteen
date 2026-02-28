@@ -47,7 +47,7 @@ export default function AdminLayout() {
   const menuItems = currentVendor?.role === 'collegeadmin' ? collegeAdminMenuItems : vendorMenuItems;
 
   return (
-    <div className="min-h-screen bg-[#F7F4F1] flex">
+    <div className="min-h-screen bg-[#FFFAF5] flex">
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div

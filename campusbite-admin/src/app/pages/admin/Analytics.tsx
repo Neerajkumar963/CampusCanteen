@@ -114,7 +114,7 @@ export default function Analytics() {
             {topItems.map((item, index) => (
               <div
                 key={item.name}
-                className="flex items-center gap-4 p-4 bg-[#F7F4F1] rounded-xl"
+                className="flex items-center gap-4 p-4 bg-[#FFFAF5] rounded-xl"
               >
                 <div className="w-8 h-8 bg-[#FF6B00] rounded-lg flex items-center justify-center">
                   <span className="font-bold text-white">{index + 1}</span>

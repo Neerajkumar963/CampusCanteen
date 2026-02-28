@@ -95,7 +95,7 @@ export default function CollegeOrders() {
                                 onClick={() => setFilter(f)}
                                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === f
                                     ? 'bg-[#FF6B00] text-white'
-                                    : 'bg-[#F7F4F1] text-[#6B6B6B] hover:bg-[#E5E5E5]'
+                                    : 'bg-[#FFFAF5] text-[#6B6B6B] hover:bg-[#E5E5E5]'
                                     }`}
                             >
                                 {f}
@@ -110,7 +110,7 @@ export default function CollegeOrders() {
                             placeholder="Search token or vendor..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-[#F7F4F1] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                            className="w-full pl-10 pr-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
                         />
                     </div>
                 </div>
@@ -125,7 +125,7 @@ export default function CollegeOrders() {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-[#F7F4F1]">
+                            <thead className="bg-[#FFFAF5]">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-sm font-semibold text-[#1E1E1E]">Token</th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold text-[#1E1E1E]">Canteen</th>
@@ -138,7 +138,7 @@ export default function CollegeOrders() {
                             </thead>
                             <tbody className="divide-y divide-[#E5E5E5]">
                                 {filteredOrders.slice().reverse().map((order) => (
-                                    <tr key={order.orderId} className="hover:bg-[#F7F4F1] transition-colors">
+                                    <tr key={order.orderId} className="hover:bg-[#FFFAF5] transition-colors">
                                         <td className="px-6 py-4">
                                             <span className="font-semibold text-[#FF6B00]">#{order.tokenNumber}</span>
                                         </td>
