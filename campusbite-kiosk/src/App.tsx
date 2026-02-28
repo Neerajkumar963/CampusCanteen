@@ -204,7 +204,7 @@ export default function App() {
     <div className="kiosk-container relative">
       <AnimatePresence mode="wait">
         {screen === 'invalid' && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="screen flex-col items-center justify-center p-8 text-center" style={{ background: '#FFFAF5', height: '100vh', justifyContent: 'center' }}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="screen p-8 text-center" style={{ background: '#FFFAF5', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ background: '#FFEBE0', padding: '1.5rem', borderRadius: '50%', marginBottom: '1.5rem' }}>
               <X size={48} color="var(--primary)" />
             </div>
