@@ -949,7 +949,26 @@ function CheckoutScreen({ cart, serviceFee, total, serviceType, serviceId, onBac
                   handler: function (response: any) {
                     onConfirm('UPI', response);
                   },
-                  theme: { color: "#FF6B00" }
+                  theme: { color: "#FF6B00" },
+                  config: {
+                    display: {
+                      blocks: {
+                        custom_methods: {
+                          name: 'Payment Methods',
+                          instruments: [
+                            { method: 'upi' },
+                            { method: 'card' },
+                            { method: 'netbanking' },
+                            { method: 'wallet' }
+                          ]
+                        }
+                      },
+                      sequence: ['block.custom_methods'],
+                      preferences: {
+                        show_default_blocks: false
+                      }
+                    }
+                  }
                 };
 
                 const loadRazorpay = () => {
