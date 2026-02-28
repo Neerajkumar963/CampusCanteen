@@ -651,13 +651,14 @@ function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack
   };
 
   return (
-    <motion.div initial={{ x: '100vw' }} animate={{ x: 0 }} className="screen" style={{ background: '#FFFAF5' }}>
+    <motion.div initial={{ x: '100vw' }} animate={{ x: 0 }} className="screen" style={{ background: '#FFFAF5', maxHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <header className="app-header sticky">
         <button className="back-circle" onClick={onBack}><ArrowLeft size={18} /></button>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Order Details</h2>
       </header>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+      {/* Scrollable Content Area */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', paddingBottom: '100px' }}>
         {/* "NOW" Item Card at the top with interactive controls */}
         <div className="flex-col gap-1" style={{ marginBottom: '2rem' }}>
           {cart.map((item: any) => (
@@ -755,25 +756,32 @@ function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack
             )}
           </div>
         )}
+      </div>
 
-        <div style={{ marginTop: 'auto', paddingBottom: '20px' }}>
-          <button
-            className="primary-btn"
-            style={{ width: '100%', padding: '1.25rem', borderRadius: '16px', fontSize: '1.1rem' }}
-            onClick={() => {
-              const finalId = (selected === 'hostel' || selected === 'classroom')
-                ? `Block ${blockNum}, Room ${roomNum}`
-                : serviceId;
-              onIdChange(finalId);
-              onNext();
-            }}
-            disabled={selected !== 'counter' && (
-              selected === 'table' ? !serviceId : (!blockNum || !roomNum)
-            )}
-          >
-            Pay ₹{total}
-          </button>
-        </div>
+      {/* Fixed Bottom Action Bar */}
+      <div style={{
+        position: 'absolute',
+        bottom: 0, left: 0, right: 0,
+        padding: '1rem 1.5rem 1.5rem 1.5rem',
+        background: 'linear-gradient(to top, #FFFAF5 80%, transparent)',
+        zIndex: 10
+      }}>
+        <button
+          className="primary-btn"
+          style={{ width: '100%', padding: '1.25rem', borderRadius: '16px', fontSize: '1.1rem' }}
+          onClick={() => {
+            const finalId = (selected === 'hostel' || selected === 'classroom')
+              ? `Block ${blockNum}, Room ${roomNum}`
+              : serviceId;
+            onIdChange(finalId);
+            onNext();
+          }}
+          disabled={selected !== 'counter' && (
+            selected === 'table' ? !serviceId : (!blockNum || !roomNum)
+          )}
+        >
+          Pay ₹{total}
+        </button>
       </div>
     </motion.div>
   );
