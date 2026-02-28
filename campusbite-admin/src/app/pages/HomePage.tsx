@@ -1,42 +1,64 @@
 import { motion } from 'motion/react';
-import { ShoppingBag, LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
 export default function HomePage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#FFFAF5] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#FFFAF5] flex flex-col items-center justify-center p-8 text-center">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center"
+        className="flex flex-col items-center"
       >
         <motion.div
           initial={{ scale: 0.8 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 200 }}
-          className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl"
+          style={{
+            background: 'white',
+            padding: '2rem',
+            borderRadius: '32px',
+            boxShadow: '0 12px 32px rgba(255, 107, 0, 0.2)',
+            marginBottom: '2rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
         >
-          <span className="text-5xl">🍔</span>
+          <span style={{ fontSize: '60px', lineHeight: 1 }}>🍔</span>
         </motion.div>
 
-        <h1 className="text-5xl sm:text-6xl font-black text-[#1A1A1A] mb-4 tracking-tight">CampusBite</h1>
-        <p className="text-lg sm:text-xl text-[#666666] mb-12 font-medium">
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1rem', color: '#000' }}>
+          CampusBite
+        </h1>
+
+        <p style={{ color: '#666666', fontSize: '1.1rem', marginBottom: '2.5rem', maxWidth: '300px' }}>
           Fast & Delicious Campus Dining
         </p>
 
-        <div className="grid gap-4 max-w-sm mx-auto">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/admin')}
-            className="flex items-center justify-center gap-3 bg-[#FF6B00] text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-[#E65C00] transition-colors shadow-lg"
-          >
-            <LayoutDashboard className="w-6 h-6" />
-            Admin Panel
-          </motion.button>
-        </div>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate('/admin')}
+          style={{
+            background: '#FF6B00',
+            color: 'white',
+            border: 'none',
+            padding: '1rem 3rem',
+            borderRadius: '99px',
+            fontSize: '1.25rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            justifyContent: 'center'
+          }}
+        >
+          <LayoutDashboard size={24} />
+          Admin Panel
+        </motion.button>
       </motion.div>
     </div>
   );

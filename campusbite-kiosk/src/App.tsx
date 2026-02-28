@@ -276,8 +276,8 @@ export default function App() {
               setSelectedVendor(null);
               setServiceType('counter');
               setServiceId('');
-              setLastOrder(null);
               setCustomerName('');
+              setLastOrder(null);
               setCustomerPhone('');
               setIsVerified(false);
             }}
