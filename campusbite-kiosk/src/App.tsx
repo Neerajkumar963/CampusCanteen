@@ -97,7 +97,6 @@ export default function App() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [isVerified, setIsVerified] = useState(false);
   const [campusCode, setCampusCode] = useState<string>(isValidHash ? CAMPUS_HASH_MAP[initialHash] : '');
-  const [isInvalidUrlModalOpen, setIsInvalidUrlModalOpen] = useState(!isValidHash);
 
   const menuItems = useStore(state => state.menu);
   const fetchMenu = useStore(state => state.fetchMenu);
@@ -216,13 +215,7 @@ export default function App() {
           </motion.div>
         )}
         {screen === 'welcome' && (
-          <WelcomeScreen key="welcome" onStart={() => {
-            if (!campusCode) {
-              setIsInvalidUrlModalOpen(true);
-              return;
-            }
-            setScreen('canteen-selector');
-          }} />
+          <WelcomeScreen key="welcome" onStart={() => setScreen('canteen-selector')} />
         )}
         {screen === 'canteen-selector' && (
           <CanteenSelectorScreen
@@ -420,36 +413,6 @@ export default function App() {
                   }}
                 >No thanks, I'll take the burger</button>
               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Invalid URL Modal */}
-      <AnimatePresence>
-        {isInvalidUrlModalOpen && (
-          <div className="modal-backdrop">
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              className="upsell-modal"
-              style={{ textAlign: 'center', maxWidth: '350px' }}
-            >
-              <div style={{ margin: '0 auto 1.5rem auto', width: '80px', height: '80px', background: '#FFF0F0', color: '#EF4444', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <MapPin size={40} strokeWidth={2.5} />
-              </div>
-              <h2 style={{ marginBottom: '1rem', fontSize: '1.5rem', fontWeight: 800 }}>Invalid Campus Code</h2>
-              <p style={{ color: 'var(--text-dim)', marginBottom: '2rem', lineHeight: '1.5' }}>
-                We couldn't detect your campus. Please scan a valid QR code on a campus table to start your order.
-              </p>
-              <button
-                className="primary-btn"
-                style={{ width: '100%', padding: '1rem' }}
-                onClick={() => setIsInvalidUrlModalOpen(false)}
-              >
-                Okay, got it
-              </button>
             </motion.div>
           </div>
         )}
