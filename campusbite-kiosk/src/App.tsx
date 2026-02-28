@@ -769,7 +769,7 @@ function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack
             borderRadius: '16px',
             fontSize: '1.1rem',
             fontWeight: 800,
-            color: 'white',
+            color: (selected !== 'counter' && (selected === 'table' ? !serviceId : (!blockNum || !roomNum))) ? '' : 'white',
             background: (selected !== 'counter' && (selected === 'table' ? !serviceId : (!blockNum || !roomNum))) ? '' : '#10B981'
           }}
           onClick={() => {
