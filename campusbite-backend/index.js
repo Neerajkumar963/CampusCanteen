@@ -96,21 +96,21 @@ const mockVendors = [
 
 const mockMenuItems = [
   // Canteen A
-  { menuId: 1, vendorId: 'canteen-a', name: 'Lunch Combo', description: 'Burger + Fries + Drink', price: 199, image: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=400', category: 'Combos' },
-  { menuId: 8, vendorId: 'canteen-a', name: 'French Fries', description: 'Crispy golden fries', price: 59, image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400', category: 'Snacks' },
-  { menuId: 9, vendorId: 'canteen-a', name: 'Veg Burger', description: 'Classic veg patty', price: 89, image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=400', category: 'Burgers' },
+  { menuId: 1, vendorId: 'canteen-a', name: 'Lunch Combo', description: 'Burger + Fries + Drink', price: 199, image: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=400', category: 'Combos', prepTime: 15 },
+  { menuId: 8, vendorId: 'canteen-a', name: 'French Fries', description: 'Crispy golden fries', price: 59, image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400', category: 'Snacks', prepTime: 8 },
+  { menuId: 9, vendorId: 'canteen-a', name: 'Veg Burger', description: 'Classic veg patty', price: 89, image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=400', category: 'Burgers', prepTime: 12 },
   
   // Canteen B
-  { menuId: 2, vendorId: 'canteen-b', name: 'Breakfast Special', description: 'Sandwich + Coffee', price: 149, image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400', category: 'Combos' },
-  { menuId: 10, vendorId: 'canteen-b', name: 'Club Sandwich', description: 'Triple layer goodness', price: 129, image: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400', category: 'Snacks' },
+  { menuId: 2, vendorId: 'canteen-b', name: 'Breakfast Special', description: 'Sandwich + Coffee', price: 149, image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400', category: 'Combos', prepTime: 10 },
+  { menuId: 10, vendorId: 'canteen-b', name: 'Club Sandwich', description: 'Triple layer goodness', price: 129, image: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400', category: 'Snacks', prepTime: 10 },
   
   // Canteen C
-  { menuId: 3, vendorId: 'canteen-c', name: 'Mango Shake', description: 'Fresh mango blended', price: 99, image: 'https://images.unsplash.com/photo-1623065422902-30a2d299bbe4?w=400', category: 'Drinks' },
-  { menuId: 11, vendorId: 'canteen-c', name: 'Cold Coffee', description: 'Creamy cold brew', price: 79, image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400', category: 'Drinks' },
+  { menuId: 3, vendorId: 'canteen-c', name: 'Mango Shake', description: 'Fresh mango blended', price: 99, image: 'https://images.unsplash.com/photo-1623065422902-30a2d299bbe4?w=400', category: 'Drinks', prepTime: 5 },
+  { menuId: 11, vendorId: 'canteen-c', name: 'Cold Coffee', description: 'Creamy cold brew', price: 79, image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400', category: 'Drinks', prepTime: 5 },
   
   // Stationery
-  { menuId: 4, vendorId: 'stationery', name: 'Blue Pen', description: 'Smooth ink ball pen', price: 10, image: 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=400', category: 'Stationery' },
-  { menuId: 5, vendorId: 'stationery', name: 'Notebook', description: '100 pages ruled', price: 40, image: 'https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400', category: 'Books' }
+  { menuId: 4, vendorId: 'stationery', name: 'Blue Pen', description: 'Smooth ink ball pen', price: 10, image: 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=400', category: 'Stationery', prepTime: 1 },
+  { menuId: 5, vendorId: 'stationery', name: 'Notebook', description: '100 pages ruled', price: 40, image: 'https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400', category: 'Books', prepTime: 1 }
 ];
 
 const mockStockImages = [

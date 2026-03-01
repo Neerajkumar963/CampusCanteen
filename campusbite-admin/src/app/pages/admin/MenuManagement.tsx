@@ -22,6 +22,7 @@ export default function MenuManagement() {
     price: '',
     category: categories[0],
     image: '',
+    prepTime: '10',
   });
 
   useEffect(() => {
@@ -50,6 +51,7 @@ export default function MenuManagement() {
       price: parseInt(newItem.price),
       category: newItem.category,
       image: newItem.image,
+      prepTime: parseInt(newItem.prepTime) || 10,
       available: true,
       vendorId: currentVendor?.vendorId,
     });
@@ -61,6 +63,7 @@ export default function MenuManagement() {
       price: '',
       category: categories[0],
       image: '',
+      prepTime: '10',
     });
   };
 
@@ -74,6 +77,11 @@ export default function MenuManagement() {
   const handlePriceChange = (id: number, newPrice: string) => {
     const price = parseInt(newPrice) || 0;
     updateMenuItem(id, { price });
+  };
+
+  const handlePrepTimeChange = (id: number, newTime: string) => {
+    const prepTime = parseInt(newTime) || 0;
+    updateMenuItem(id, { prepTime });
   };
 
   const handleAvailabilityToggle = (id: number, currentAvailable: boolean) => {
@@ -147,6 +155,20 @@ export default function MenuManagement() {
                     type="number"
                     value={item.price}
                     onChange={(e) => handlePriceChange(item.id, e.target.value)}
+                    className="flex-1 px-3 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm text-[#6B6B6B] mb-1 block">
+                  Prep Time (e.g. {item.prepTime || 10}-{(item.prepTime || 10) + 5} mins)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={item.prepTime || 10}
+                    onChange={(e) => handlePrepTimeChange(item.id, e.target.value)}
                     className="flex-1 px-3 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
                   />
                 </div>
@@ -248,6 +270,23 @@ export default function MenuManagement() {
                         >
                           {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                         </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Base Prep Time (Mins)</label>
+                        <input
+                          type="number"
+                          required
+                          value={newItem.prepTime}
+                          onChange={e => setNewItem({ ...newItem, prepTime: e.target.value })}
+                          className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-[#FF6B00] rounded-xl outline-none transition-all"
+                          placeholder="10"
+                        />
+                      </div>
+                      <div className="flex items-end pb-3">
+                        <span className="text-xs text-gray-400 italic">Shows as {newItem.prepTime || '10'}-{parseInt(newItem.prepTime || '10') + 5} mins</span>
                       </div>
                     </div>
 

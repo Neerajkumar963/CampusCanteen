@@ -39,6 +39,7 @@ interface MenuItem {
   badge?: string;
   isCombo?: boolean;
   available?: boolean;
+  prepTime?: number;
 }
 
 interface CartItem extends MenuItem {
@@ -676,7 +677,13 @@ function MenuScreen({ vendorName, vendorId, onBack, onNext, selectedCategory, on
                 )}
               </div>
               <div className="item-details">
-                <h3 className="bold">{item.name}</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="bold">{item.name}</h3>
+                  <div className="flex items-center gap-1 text-[#6B6B6B] text-[10px] font-medium bg-gray-100 px-1.5 py-0.5 rounded-md">
+                    <Clock size={10} />
+                    <span>{item.prepTime || 10}-{(item.prepTime || 10) + 5}m</span>
+                  </div>
+                </div>
                 <p className="item-desc">{item.description}</p>
               </div>
               <div className="item-footer">
@@ -793,6 +800,30 @@ function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack
         <button className="back-circle" onClick={onBack}><ArrowLeft size={18} /></button>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Order Details</h2>
       </header>
+
+      {/* Estimated Time Banner */}
+      <div style={{ padding: '0 1.5rem', marginTop: '1rem' }}>
+        <div style={{
+          background: 'linear-gradient(135deg, #FF6B00 0%, #FF8533 100%)',
+          borderRadius: '16px',
+          padding: '1rem 1.25rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem',
+          color: 'white',
+          boxShadow: '0 10px 20px -5px rgba(255, 107, 0, 0.3)'
+        }}>
+          <div style={{ background: 'rgba(255,255,255,0.2)', padding: '0.75rem', borderRadius: '12px' }}>
+            <Clock size={24} color="white" />
+          </div>
+          <div>
+            <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, opacity: 0.9 }}>Estimated Wait Time</p>
+            <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: 900 }}>
+              ~{Math.max(...cart.map((i: any) => i.prepTime || 10))}-{Math.max(...cart.map((i: any) => i.prepTime || 10)) + 5} Mins
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Scrollable Content Area */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', paddingBottom: '100px' }}>

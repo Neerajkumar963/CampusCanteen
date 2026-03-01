@@ -24,6 +24,10 @@ const menuSchema = new mongoose.Schema({
   available: {
     type: Boolean,
     default: true
+  },
+  prepTime: {
+    type: Number,
+    default: 10 // Minutes
   }
 }, { timestamps: true });
 
