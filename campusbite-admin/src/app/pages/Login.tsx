@@ -50,8 +50,8 @@ export default function Login() {
                     <div className="w-16 h-16 bg-[#FF6B00] rounded-2xl flex items-center justify-center mx-auto mb-4">
                         <span className="text-white font-bold text-2xl">CB</span>
                     </div>
-                    <h2 className="text-2xl font-bold text-[#1E1E1E]">College Admin Portal</h2>
-                    <p className="text-[#6B6B6B] mt-2">Sign in to manage your campus</p>
+                    <h2 className="text-2xl font-bold text-[#1E1E1E]">Vendor Dashboard</h2>
+                    <p className="text-[#6B6B6B] mt-2">Sign in to manage your canteen</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
@@ -74,7 +74,7 @@ export default function Login() {
                                 value={vendorId}
                                 onChange={(e) => setVendorId(e.target.value)}
                                 className="w-full pl-11 pr-4 py-3.5 bg-[#FFFAF5] border-2 border-transparent focus:border-[#FF6B00] focus:bg-white rounded-xl outline-none font-medium transition-all"
-                                placeholder="Admin ID"
+                                placeholder="Enter your ID"
                                 required
                             />
                         </div>
@@ -120,13 +120,13 @@ export default function Login() {
 
                     <div className="text-center pt-2">
                         <p className="text-[#6B6B6B] font-medium">
-                            Not registered?{' '}
+                            Are you a new vendor?{' '}
                             <button
                                 type="button"
-                                onClick={() => navigate('/register-campus')}
+                                onClick={() => navigate('/register-vendor')}
                                 className="text-[#FF6B00] hover:underline font-bold"
                             >
-                                Register Your Campus
+                                Register Now
                             </button>
                         </p>
                     </div>

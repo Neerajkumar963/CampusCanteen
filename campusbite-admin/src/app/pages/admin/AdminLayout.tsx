@@ -15,21 +15,13 @@ import {
 
 import { useStore } from '../../store/useStore';
 
-const vendorMenuItems = [
+const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
   { icon: ShoppingBag, label: 'Orders', path: '/admin/orders' },
   { icon: UtensilsCrossed, label: 'Menu Management', path: '/admin/menu' },
   { icon: Tag, label: 'Combos & Offers', path: '/admin/combos' },
   { icon: CreditCard, label: 'Payments & QR', path: '/admin/payments' },
   { icon: BarChart3, label: 'Analytics', path: '/admin/analytics' },
-  { icon: Settings, label: 'Settings', path: '/admin/settings' },
-];
-
-const collegeAdminMenuItems = [
-  { icon: LayoutDashboard, label: 'Campus Dashboard', path: '/admin/college-dashboard' },
-  { icon: UtensilsCrossed, label: 'Manage Canteens', path: '/admin/manage-canteens' },
-  { icon: ShoppingBag, label: 'Campus Orders', path: '/admin/college-orders' },
-  { icon: BarChart3, label: 'Campus Analytics', path: '/admin/college-analytics' },
   { icon: Settings, label: 'Settings', path: '/admin/settings' },
 ];
 
@@ -44,14 +36,12 @@ export default function AdminLayout() {
     navigate('/login');
   };
 
-  const menuItems = currentVendor?.role === 'collegeadmin' ? collegeAdminMenuItems : vendorMenuItems;
-
   if (currentVendor?.role === 'superadmin') {
     return (
       <div className="min-h-screen bg-[#FFFAF5] flex items-center justify-center p-4">
         <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center">
           <h2 className="text-2xl font-bold text-[#1E1E1E] mb-4">Wrong Portal</h2>
-          <p className="text-[#6B6B6B] mb-6">This portal is for College Admins and Canteens. Please use the Super Admin dashboard.</p>
+          <p className="text-[#6B6B6B] mb-6">This portal is for Vendors only. Please use the Super Admin dashboard.</p>
           <button onClick={handleLogout} className="px-6 py-2 bg-[#FF6B00] text-white rounded-xl font-bold">Logout</button>
         </div>
       </div>

@@ -1,64 +1,55 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { Switch } from '../../components/ui/switch';
 import { Checkbox } from '../../components/ui/checkbox';
-import { useStore } from '../../store/useStore';
-
-interface Combo {
-  id: number;
-  name: string;
-  items: number[];
-  discount: number;
-  enabled: boolean;
-}
+import { useStore, Combo } from '../../store/useStore';
 
 export default function Combos() {
   const menuItems = useStore((state) => state.menu);
+  const combos = useStore((state) => state.combos);
+  const currentVendor = useStore((state) => state.currentVendor);
+  const fetchCombos = useStore((state) => state.fetchCombos);
+  const addCombo = useStore((state) => state.addCombo);
+  const updateCombo = useStore((state) => state.updateCombo);
+  const deleteCombo = useStore((state) => state.deleteCombo);
 
-  const [combos, setCombos] = useState<Combo[]>([
-    {
-      id: 1,
-      name: 'Lunch Combo',
-      items: [4, 8, 15], // Classic Burger, Fries, Cold Coffee
-      discount: 10,
-      enabled: true,
-    },
-  ]);
+  useEffect(() => {
+    if (currentVendor?.vendorId) {
+      fetchCombos(currentVendor.vendorId);
+    }
+  }, [currentVendor?.vendorId, fetchCombos]);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newComboName, setNewComboName] = useState('');
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [discount, setDiscount] = useState('10');
 
-  const handleCreateCombo = () => {
-    if (!newComboName || selectedItems.length === 0) return;
+  const handleCreateCombo = async () => {
+    if (!newComboName || selectedItems.length === 0 || !currentVendor) return;
 
-    const newCombo: Combo = {
-      id: Date.now(),
+    await addCombo({
       name: newComboName,
       items: selectedItems,
       discount: parseInt(discount) || 0,
       enabled: true,
-    };
+      vendorId: currentVendor.vendorId
+    });
 
-    setCombos([...combos, newCombo]);
     setDialogOpen(false);
     setNewComboName('');
     setSelectedItems([]);
     setDiscount('10');
   };
 
-  const toggleCombo = (id: number) => {
-    setCombos(
-      combos.map((combo) =>
-        combo.id === id ? { ...combo, enabled: !combo.enabled } : combo
-      )
-    );
+  const toggleCombo = async (id: string, currentEnabled: boolean) => {
+    await updateCombo(id, { enabled: !currentEnabled });
   };
 
-  const deleteCombo = (id: number) => {
-    setCombos(combos.filter((combo) => combo.id !== id));
+  const handleDeleteCombo = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this combo?')) {
+      await deleteCombo(id);
+    }
   };
 
   const getComboItems = (itemIds: number[]) => {
@@ -94,12 +85,12 @@ export default function Combos() {
 
           return (
             <div
-              key={combo.id}
+              key={combo._id}
               className="bg-white rounded-2xl overflow-hidden shadow-sm"
             >
               <div className="bg-gradient-to-r from-[#FF6B00] to-[#FF8A00] p-6 text-white relative">
                 <button
-                  onClick={() => deleteCombo(combo.id)}
+                  onClick={() => combo._id && handleDeleteCombo(combo._id)}
                   className="absolute top-3 right-3 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
                 >
                   <X className="w-4 h-4" />
@@ -141,7 +132,7 @@ export default function Combos() {
                   </span>
                   <Switch
                     checked={combo.enabled}
-                    onCheckedChange={() => toggleCombo(combo.id)}
+                    onCheckedChange={() => combo._id && toggleCombo(combo._id, combo.enabled)}
                   />
                 </div>
               </div>

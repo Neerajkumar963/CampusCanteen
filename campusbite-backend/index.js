@@ -13,10 +13,10 @@ const Vendor = require('./models/Vendor');
 const Menu = require('./models/Menu');
 const Order = require('./models/Order');
 const Campus = require('./models/Campus');
-const CollegeAdmin = require('./models/CollegeAdmin');
 const Otp = require('./models/Otp');
 const GlobalSettings = require('./models/GlobalSettings');
 const StockImage = require('./models/StockImage');
+const Combo = require('./models/Combo');
 const axios = require('axios'); // For future SMS gateway integration
 
 const app = express();
@@ -201,18 +201,6 @@ async function seedDatabase() {
     { $set: { vendorId: 'cb-super-admin', password: 'campusbite_super_2024' } }
   );
 
-  // Pre-seed a College Admin
-  if (await CollegeAdmin.countDocuments() === 0) {
-    if (defaultCampus) {
-      console.log('🌱 Seeding Mock College Admin...');
-      await CollegeAdmin.create({
-        adminId: 'collegeadmin',
-        password: 'password123',
-        name: 'GGI Operations',
-        campusId: defaultCampus._id
-      });
-    }
-  }
 
   // Migration: Ensure all existing vendors have numeric fields
   console.log('🌱 Checking for service charge updates...');
@@ -307,33 +295,16 @@ app.patch('/api/settings/platform', async (req, res) => {
 
 // 0. Vendor Login (New API for Admin)
 app.post('/api/login', async (req, res) => {
-  const { vendorId, password, token } = req.body;
+  const { vendorId, password } = req.body;
   try {
     let user = await Vendor.findOne({ vendorId }).populate('campusId');
-    let isCollegeAdmin = false;
-
-    if (!user) {
-      user = await CollegeAdmin.findOne({ adminId: vendorId }).populate('campusId');
-      if (user) isCollegeAdmin = true;
-    }
 
     if (!user || user.password !== password) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // STRICT TOKEN CHECK FOR VENDORS
-    // Vendors MUST login via the secret token link
-    if (user.role === 'vendor' && !isCollegeAdmin) {
-      if (!token || user.loginToken !== token) {
-        return res.status(401).json({ 
-          success: false, 
-          message: 'Invalid credentials' 
-        });
-      }
-    }
-
     // Check Subscription Logic for Regular Vendors
-    if (!isCollegeAdmin && user.role === 'vendor') {
+    if (user.role === 'vendor') {
       const now = new Date();
       if (user.subscription.validUntil < now || user.subscription.status === 'Suspended') {
         // Auto-suspend if expired
@@ -348,11 +319,6 @@ app.post('/api/login', async (req, res) => {
     // Don't send password back
     const { password: _, ...userData } = user.toObject();
     
-    // Normalize ID field for the frontend store
-    if (isCollegeAdmin) {
-      userData.vendorId = userData.adminId;
-    }
-
     res.json({ success: true, vendor: userData });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -461,44 +427,53 @@ app.post('/api/campuses', async (req, res) => {
   }
 });
 
-// Dynamic Registration for Colleges
-app.post('/api/register-campus', async (req, res) => {
+// New Vendor Self-Registration
+app.post('/api/vendors/register', async (req, res) => {
   try {
-    const { campusName, campusCode, adminName, adminId, email, password } = req.body;
+    const { vendorId, password, name, campusName, description } = req.body;
 
-    // Check if Campus code or Admin ID/Email already exists
-    const existingCampus = await Campus.findOne({ code: campusCode });
-    if (existingCampus) return res.status(400).json({ success: false, message: 'Campus code already exists' });
+    // 1. Check if vendorId already exists
+    const existingVendor = await Vendor.findOne({ vendorId });
+    if (existingVendor) {
+      return res.status(400).json({ success: false, message: 'Vendor ID already exists' });
+    }
 
-    const existingAdmin = await CollegeAdmin.findOne({ $or: [{ adminId }, { email }] });
-    if (existingAdmin) return res.status(400).json({ success: false, message: 'Admin ID or Email already exists' });
+    // 2. Map Campus Name to ID (Find or Create)
+    let campus = await Campus.findOne({ name: { $regex: new RegExp(`^${campusName}$`, 'i') } });
+    if (!campus) {
+      // Create a skeleton campus if not found
+      const qrToken = crypto.randomBytes(4).toString('hex');
+      campus = new Campus({
+        name: campusName,
+        code: campusName.toUpperCase().replace(/\s+/g, '_').substring(0, 10),
+        qrToken
+      });
+      await campus.save();
+    }
 
-    // 1. Create Campus
-    const qrToken = crypto.randomBytes(4).toString('hex');
-    const newCampus = new Campus({
-      name: campusName,
-      code: campusCode,
-      qrToken
+    // 3. Create Vendor
+    const validUntil = new Date();
+    validUntil.setFullYear(validUntil.getFullYear() + 1);
+    const loginToken = crypto.randomBytes(8).toString('hex');
+
+    const vendor = new Vendor({
+      name,
+      vendorId,
+      password,
+      description: description || 'No description provided',
+      campusId: campus._id,
+      role: 'vendor',
+      loginToken,
+      subscription: {
+        status: 'Active',
+        validUntil
+      }
     });
-    const savedCampus = await newCampus.save();
 
-    // 2. Create College Admin
-    // Note: Password hashing should be implemented with bcrypt for production
-    const newAdmin = new CollegeAdmin({
-      adminId,
-      password, // Should be hashed
-      name: adminName,
-      email,
-      campusId: savedCampus._id
-    });
-    await newAdmin.save();
+    await vendor.save();
+    const { password: _, ...userData } = vendor.toObject();
+    res.status(201).json({ success: true, vendor: userData });
 
-    res.status(201).json({ 
-      success: true, 
-      message: 'Campus and Admin registered successfully',
-      campus: savedCampus,
-      admin: { adminId, name: adminName, email }
-    });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Registration failed', error: err.message });
   }
@@ -883,6 +858,53 @@ app.patch('/api/menu/:id', async (req, res) => {
   }
 });
 
+// --- COMBOS API Endpoints ---
+app.get('/api/combos', async (req, res) => {
+  try {
+    const { vendorId } = req.query;
+    const filter = vendorId ? { vendorId } : {};
+    const combos = await Combo.find(filter);
+    res.json({ success: true, combos });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/combos', async (req, res) => {
+  try {
+    const combo = new Combo(req.body);
+    await combo.save();
+    io.emit('combos_updated', { type: 'create', combo });
+    res.status(201).json({ success: true, combo });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.patch('/api/combos/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const combo = await Combo.findByIdAndUpdate(id, req.body, { new: true });
+    if (!combo) return res.status(404).json({ success: false, message: 'Combo not found' });
+    io.emit('combos_updated', { type: 'update', combo });
+    res.json({ success: true, combo });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.delete('/api/combos/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const combo = await Combo.findByIdAndDelete(id);
+    if (!combo) return res.status(404).json({ success: false, message: 'Combo not found' });
+    io.emit('combos_updated', { type: 'delete', id });
+    res.json({ success: true, message: 'Combo deleted' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // --- SUBSCRIPTION & RAZORPAY ROUTES ---
 
 // 1. Create Razorpay Order
@@ -980,6 +1002,7 @@ app.post('/api/debug/reset-db', async (req, res) => {
     await Menu.deleteMany({});
     await Order.deleteMany({});
     await CollegeAdmin.deleteMany({});
+    await Combo.deleteMany({});
     
     await seedDatabase();
     res.json({ success: true, message: 'Database reset and re-seeded successfully' });

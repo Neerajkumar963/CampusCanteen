@@ -29,7 +29,7 @@ const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
 
 // --- Types ---
 interface MenuItem {
-  menuId: number;
+  menuId: number | string;
   name: string;
   price: number;
   category: string;
@@ -145,6 +145,10 @@ export default function App() {
         }));
 
         setVendors(mappedVendors);
+
+        // Step 4: Initial Combos Fetch (if any)
+        // If there's a vendor already selected or we just want to load all
+        // We'll fetch specifically when vendor is selected
       } catch (err) {
         console.error('Failed to load campus data:', err);
         setScreen('invalid');
@@ -278,7 +282,7 @@ export default function App() {
     }
   };
 
-  const updateQuantity = (menuId: number, delta: number) => {
+  const updateQuantity = (menuId: number | string, delta: number) => {
     setCart(prev => prev.map(i => {
       if (i.menuId === menuId) {
         const newQty = Math.max(0, i.quantity + delta);
@@ -286,6 +290,44 @@ export default function App() {
       }
       return i;
     }).filter(i => i.quantity > 0));
+  };
+
+  const combos = useStore(state => state.combos);
+  const fetchCombos = useStore(state => state.fetchCombos);
+
+  // Fetch combos when vendor is selected
+  useEffect(() => {
+    if (selectedVendor?.id) {
+      fetchCombos(selectedVendor.id);
+    }
+  }, [selectedVendor?.id, fetchCombos]);
+
+  const calculateComboPrice = (combo: any) => {
+    const items = menuItems.filter(mi => combo.items.includes(mi.menuId));
+    const total = items.reduce((sum, item) => sum + item.price, 0);
+    return Math.round(total * (1 - combo.discount / 100));
+  };
+
+  const addComboToCart = (combo: any) => {
+    const comboItem: CartItem = {
+      menuId: `combo_${combo._id}`,
+      name: combo.name,
+      price: calculateComboPrice(combo),
+      category: 'Combos',
+      image: combo.image || 'https://images.unsplash.com/photo-1543353071-10c8ba85a902?w=800',
+      description: `Includes: ${combo.items.map((id: number) => menuItems.find(mi => mi.menuId === id)?.name).filter(Boolean).join(', ')}`,
+      quantity: 1,
+      isCombo: true,
+      available: true
+    };
+
+    setCart(prev => {
+      const existing = prev.find(i => i.menuId === comboItem.menuId);
+      if (existing) {
+        return prev.map(i => i.menuId === comboItem.menuId ? { ...i, quantity: i.quantity + 1 } : i);
+      }
+      return [...prev, comboItem];
+    });
   };
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -383,6 +425,8 @@ export default function App() {
             cartCount={cart.length}
             cartTotal={subtotal}
             menuItems={menuItems}
+            combos={combos.filter(c => c.enabled)}
+            onAddCombo={addComboToCart}
           />
         )}
         {screen === 'service' && (
@@ -632,11 +676,15 @@ function CanteenSelectorScreen({ onSelect, campusCode, vendors }: { onSelect: (v
   );
 }
 
-function MenuScreen({ vendorName, vendorId, onBack, onNext, selectedCategory, onSelectCategory, onAddToCart, cartCount, cartTotal, menuItems }: any) {
+function MenuScreen({ vendorName, vendorId, onBack, onNext, selectedCategory, onSelectCategory, onAddToCart, cartCount, cartTotal, menuItems, combos, onAddCombo }: any) {
   // Dynamically filter items by vendorId from the backend
   const vendorItems = menuItems.filter((item: MenuItem) => item.vendorId === vendorId);
 
   const vendorCategories = Array.from(new Set(vendorItems.map((item: MenuItem) => item.category))) as string[];
+
+  if (combos.length > 0 && !vendorCategories.includes('Combos')) {
+    vendorCategories.unshift('Combos');
+  }
 
   const categoryIcons: any = {
     'Combos': <Zap size={20} />,
@@ -686,43 +734,84 @@ function MenuScreen({ vendorName, vendorId, onBack, onNext, selectedCategory, on
         </aside>
 
         <div className="menu-grid">
-          {vendorItems.filter((i: MenuItem) => i.category === selectedCategory).map((item: MenuItem) => (
-            <div key={item.menuId} className={`menu-item-card ${!item.available ? 'grayscale opacity-60' : ''}`}>
-              <div className="item-img-container">
-                <img src={item.image} alt={item.name} />
-                {item.badge && <div className="card-floating-badge" style={{ fontSize: '0.6rem', padding: '0.2rem 0.5rem' }}>{item.badge}</div>}
-                {!item.available && (
-                  <div className="sold-out-overlay">
-                    <span className="sold-out-tag">
-                      SOLD OUT
-                    </span>
+          {selectedCategory === 'Combos' ? (
+            combos.map((combo: any) => {
+              const items = menuItems.filter(mi => combo.items.includes(mi.menuId));
+              const originalPrice = items.reduce((sum, item) => sum + item.price, 0);
+              const discountedPrice = Math.round(originalPrice * (1 - combo.discount / 100));
+
+              return (
+                <div key={combo._id} className="menu-item-card combo-card">
+                  <div className="item-img-container">
+                    <img src={combo.image || 'https://images.unsplash.com/photo-1543353071-10c8ba85a902?w=800'} alt={combo.name} />
+                    <div className="card-floating-badge" style={{ background: '#FF6B00', color: 'white' }}>{combo.discount}% OFF</div>
                   </div>
-                )}
-              </div>
-              <div className="item-details">
-                <div className="flex items-center justify-between">
-                  <h3 className="bold">{item.name}</h3>
-                  {item.category !== 'Stationery' && (
-                    <div className="flex items-center gap-1 text-[#6B6B6B] text-[10px] font-medium bg-gray-100 px-1.5 py-0.5 rounded-md">
-                      <Clock size={10} />
-                      <span>{item.prepTime || 10}-{(item.prepTime || 10) + 5}m</span>
+                  <div className="item-details">
+                    <div className="flex items-center justify-between">
+                      <h3 className="bold">{combo.name}</h3>
+                      <div className="flex items-center gap-1 text-[#6B6B6B] text-[10px] font-medium bg-gray-100 px-1.5 py-0.5 rounded-md">
+                        <Zap size={10} color="#FF6B00" />
+                        <span>COMBO</span>
+                      </div>
+                    </div>
+                    <p className="item-desc" style={{ fontSize: '0.75rem', marginTop: '4px' }}>
+                      {items.map(item => item.name).join(' + ')}
+                    </p>
+                  </div>
+                  <div className="item-footer">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-gray-400 line-through">₹{originalPrice}</span>
+                      <span className="price-now">₹{discountedPrice}</span>
+                    </div>
+                    <button
+                      className="add-item-btn"
+                      onClick={() => onAddCombo(combo)}
+                    >
+                      ADD
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            vendorItems.filter((i: MenuItem) => i.category === selectedCategory).map((item: MenuItem) => (
+              <div key={item.menuId} className={`menu-item-card ${!item.available ? 'grayscale opacity-60' : ''}`}>
+                <div className="item-img-container">
+                  <img src={item.image} alt={item.name} />
+                  {item.badge && <div className="card-floating-badge" style={{ fontSize: '0.6rem', padding: '0.2rem 0.5rem' }}>{item.badge}</div>}
+                  {!item.available && (
+                    <div className="sold-out-overlay">
+                      <span className="sold-out-tag">
+                        SOLD OUT
+                      </span>
                     </div>
                   )}
                 </div>
-                <p className="item-desc">{item.description}</p>
+                <div className="item-details">
+                  <div className="flex items-center justify-between">
+                    <h3 className="bold">{item.name}</h3>
+                    {item.category !== 'Stationery' && (
+                      <div className="flex items-center gap-1 text-[#6B6B6B] text-[10px] font-medium bg-gray-100 px-1.5 py-0.5 rounded-md">
+                        <Clock size={10} />
+                        <span>{item.prepTime || 10}-{(item.prepTime || 10) + 5}m</span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="item-desc">{item.description}</p>
+                </div>
+                <div className="item-footer">
+                  <span className="price-now">₹{item.price}</span>
+                  <button
+                    className={`add-item-btn ${!item.available ? 'unavailable-btn' : ''}`}
+                    onClick={() => item.available && onAddToCart(item)}
+                    disabled={!item.available}
+                  >
+                    {item.available ? 'ADD' : 'UNAVAILABLE'}
+                  </button>
+                </div>
               </div>
-              <div className="item-footer">
-                <span className="price-now">₹{item.price}</span>
-                <button
-                  className={`add-item-btn ${!item.available ? 'unavailable-btn' : ''}`}
-                  onClick={() => item.available && onAddToCart(item)}
-                  disabled={!item.available}
-                >
-                  {item.available ? 'ADD' : 'UNAVAILABLE'}
-                </button>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 

@@ -20,7 +20,7 @@ export default function Settings() {
     setServices(newServices);
 
     // Auto-save to backend
-    if (currentVendor && currentVendor.vendorId && currentVendor.role !== 'superadmin' && currentVendor.role !== 'collegeadmin') {
+    if (currentVendor && currentVendor.vendorId && currentVendor.role !== 'superadmin') {
       try {
         const response = await fetch(`${API_URL}/api/vendors/${currentVendor.vendorId}/services`, {
           method: 'PATCH',
@@ -43,7 +43,7 @@ export default function Settings() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      if (currentVendor && currentVendor.vendorId && currentVendor.role !== 'superadmin' && currentVendor.role !== 'collegeadmin') {
+      if (currentVendor && currentVendor.vendorId && currentVendor.role !== 'superadmin') {
         const response = await fetch(`${API_URL}/api/vendors/${currentVendor.vendorId}/services`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -74,8 +74,8 @@ export default function Settings() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
-      {/* General Settings - Hidden for College Admins */}
-      {currentVendor?.role !== 'collegeadmin' && (
+      {/* General Settings */}
+      {true && (
         <div className="bg-white rounded-2xl p-6 shadow-sm space-y-6">
           <h2 className="text-xl font-semibold text-[#1E1E1E]">General Settings</h2>
 
@@ -152,20 +152,16 @@ export default function Settings() {
         </div>
       )}
 
-      {/* Canteen / Campus Information */}
+      {/* Canteen Information */}
       <div className="bg-white rounded-2xl p-6 shadow-sm space-y-6">
-        <h2 className="text-xl font-semibold text-[#1E1E1E]">
-          {currentVendor?.role === 'collegeadmin' ? 'Campus Information' : 'Canteen Information'}
-        </h2>
+        <h2 className="text-xl font-semibold text-[#1E1E1E]">Canteen Information</h2>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[#1E1E1E] mb-2">
-              {currentVendor?.role === 'collegeadmin' ? 'Campus Name' : 'Canteen Name'}
-            </label>
+            <label className="block text-sm font-medium text-[#1E1E1E] mb-2">Canteen Name</label>
             <input
               type="text"
-              defaultValue={currentVendor?.role === 'collegeadmin' ? 'My Campus' : 'GGI Canteen'}
+              defaultValue={currentVendor?.name || 'My Canteen'}
               className="w-full px-4 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
             />
           </div>
@@ -179,29 +175,27 @@ export default function Settings() {
             />
           </div>
 
-          {currentVendor?.role !== 'collegeadmin' && (
-            <div>
-              <label className="block text-sm font-medium text-[#1E1E1E] mb-2">Operating Hours</label>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs text-[#6B6B6B] mb-1">Opening Time</label>
-                  <input
-                    type="time"
-                    defaultValue="08:00"
-                    className="w-full px-3 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00] text-sm tabular-nums"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-[#6B6B6B] mb-1">Closing Time</label>
-                  <input
-                    type="time"
-                    defaultValue="20:00"
-                    className="w-full px-3 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00] text-sm tabular-nums"
-                  />
-                </div>
+          <div>
+            <label className="block text-sm font-medium text-[#1E1E1E] mb-2">Operating Hours</label>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-[#6B6B6B] mb-1">Opening Time</label>
+                <input
+                  type="time"
+                  defaultValue="08:00"
+                  className="w-full px-3 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00] text-sm tabular-nums"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-[#6B6B6B] mb-1">Closing Time</label>
+                <input
+                  type="time"
+                  defaultValue="20:00"
+                  className="w-full px-3 py-2 bg-[#FFFAF5] border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B00] text-sm tabular-nums"
+                />
               </div>
             </div>
-          )}
+          </div>
 
           <button
             onClick={handleSave}
@@ -211,6 +205,8 @@ export default function Settings() {
           </button>
         </div>
       </div>
+
+      {/* Subscription Plan Card */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#E5E5E5] space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

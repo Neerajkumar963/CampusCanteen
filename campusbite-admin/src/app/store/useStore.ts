@@ -16,6 +16,16 @@ export interface MenuItem {
   prepTime?: number;
 }
 
+export interface Combo {
+  _id?: string;
+  name: string;
+  items: number[]; // menuIds
+  discount: number;
+  enabled: boolean;
+  vendorId: string;
+  image?: string;
+}
+
 export interface CartItem {
   item: MenuItem;
   quantity: number;
@@ -44,7 +54,7 @@ export interface Vendor {
   name: string;
   description: string;
   image?: string;
-  role: 'vendor' | 'superadmin' | 'collegeadmin';
+  role: 'vendor' | 'superadmin';
   campusId?: string | { _id: string, name: string, code: string };
   supportedServices?: string[];
   deliveryCharge?: number;
@@ -63,6 +73,7 @@ interface StoreState {
   cart: CartItem[];
   orders: Order[];
   menu: MenuItem[];
+  combos: Combo[];
   settings: {
     deliveryCharge: number;
     tableServiceCharge: number;
@@ -82,6 +93,10 @@ interface StoreState {
   getTodayRevenue: () => number;
   updateMenuItem: (itemId: number, updates: Partial<MenuItem>) => Promise<void>;
   addMenuItem: (item: Omit<MenuItem, 'id'>) => Promise<void>;
+  fetchCombos: (vendorId: string) => Promise<void>;
+  addCombo: (combo: Omit<Combo, '_id'>) => Promise<void>;
+  updateCombo: (id: string, updates: Partial<Combo>) => Promise<void>;
+  deleteCombo: (id: string) => Promise<void>;
 }
 
 export const useStore = create<StoreState>((set, get) => {
@@ -129,6 +144,27 @@ export const useStore = create<StoreState>((set, get) => {
     }));
   });
 
+  socket.on('combos_updated', (data: { type: 'create' | 'update' | 'delete', combo?: Combo, id?: string }) => {
+    set((state) => {
+      if (data.type === 'create' && data.combo) {
+        return { combos: [...state.combos, data.combo] };
+      }
+      if (data.type === 'update' && data.combo) {
+        const updatedCombo = data.combo;
+        return {
+          combos: state.combos.map(c => c._id === updatedCombo._id ? updatedCombo : c)
+        };
+      }
+      if (data.type === 'delete' && data.id) {
+        const deleteId = data.id;
+        return {
+          combos: state.combos.filter(c => c._id !== deleteId)
+        };
+      }
+      return state;
+    });
+  });
+
   return {
     currentVendor: null,
     login: (vendor) => set({ currentVendor: vendor }),
@@ -139,6 +175,7 @@ export const useStore = create<StoreState>((set, get) => {
     cart: [],
     orders: [],
     menu: [],
+    combos: [],
     settings: {
       deliveryCharge: 20,
       tableServiceCharge: 10,
@@ -316,6 +353,60 @@ export const useStore = create<StoreState>((set, get) => {
         }
       } catch (err) {
         console.error('Failed to add menu item:', err);
+      }
+    },
+    fetchCombos: async (vendorId) => {
+      try {
+        const response = await fetch(`${API_URL}/api/combos?vendorId=${vendorId}`);
+        const data = await response.json();
+        if (data.success) {
+          set({ combos: data.combos });
+        }
+      } catch (err) {
+        console.error('Failed to fetch combos:', err);
+      }
+    },
+    addCombo: async (combo) => {
+      try {
+        const response = await fetch(`${API_URL}/api/combos`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(combo),
+        });
+        const data = await response.json();
+        if (data.success) {
+          // Socket handles update
+        }
+      } catch (err) {
+        console.error('Failed to add combo:', err);
+      }
+    },
+    updateCombo: async (id, updates) => {
+      try {
+        const response = await fetch(`${API_URL}/api/combos/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates),
+        });
+        const data = await response.json();
+        if (data.success) {
+          // Socket handles update
+        }
+      } catch (err) {
+        console.error('Failed to update combo:', err);
+      }
+    },
+    deleteCombo: async (id) => {
+      try {
+        const response = await fetch(`${API_URL}/api/combos/${id}`, {
+          method: 'DELETE',
+        });
+        const data = await response.json();
+        if (data.success) {
+          // Socket handles update
+        }
+      } catch (err) {
+        console.error('Failed to delete combo:', err);
       }
     },
   };
