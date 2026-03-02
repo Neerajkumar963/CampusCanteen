@@ -13,6 +13,7 @@ export interface MenuItem {
   category: string;
   available: boolean;
   vendorId?: string;
+  prepTime?: number;
 }
 
 export interface CartItem {

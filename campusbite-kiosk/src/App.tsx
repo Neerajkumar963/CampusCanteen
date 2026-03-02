@@ -47,7 +47,7 @@ interface CartItem extends MenuItem {
 }
 
 type ServiceType = 'counter' | 'table' | 'hostel' | 'classroom' | '';
-type Screen = 'welcome' | 'canteen-selector' | 'menu' | 'service' | 'verify' | 'checkout' | 'success' | 'invalid';
+type Screen = 'welcome' | 'canteen-selector' | 'menu' | 'service' | 'verify' | 'checkout' | 'success' | 'invalid' | 'loading';
 
 interface Vendor {
   id: string;
@@ -78,7 +78,7 @@ const SERVICE_FEES: Record<ServiceType, number> = {
 
 // --- App Component ---
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('invalid');
+  const [screen, setScreen] = useState<Screen>('loading');
   const [vendors, setVendors] = useState<Vendor[]>(INITIAL_VENDORS);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -310,6 +310,29 @@ export default function App() {
   return (
     <div className="kiosk-container relative">
       <AnimatePresence mode="wait">
+        {screen === 'loading' && (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="screen flex-col items-center justify-center"
+            style={{ background: '#FFFAF5', gap: '1.5rem' }}
+          >
+            <div className="flex flex-col items-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF6B00]"></div>
+              <motion.div
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                style={{ marginTop: '1.5rem', textAlign: 'center' }}
+              >
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#1A1A1A', margin: 0 }}>CampusBite</h2>
+                <p style={{ fontSize: '0.85rem', color: '#6B6B6B', fontWeight: 600, marginTop: '4px' }}>Verifying your location...</p>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+
         {screen === 'invalid' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="screen p-8 text-center" style={{ background: '#FFFAF5', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ background: '#FFEBE0', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '80px', height: '80px', borderRadius: '50%', marginBottom: '1.5rem', paddingRight: '2px' }}>
@@ -679,10 +702,12 @@ function MenuScreen({ vendorName, vendorId, onBack, onNext, selectedCategory, on
               <div className="item-details">
                 <div className="flex items-center justify-between">
                   <h3 className="bold">{item.name}</h3>
-                  <div className="flex items-center gap-1 text-[#6B6B6B] text-[10px] font-medium bg-gray-100 px-1.5 py-0.5 rounded-md">
-                    <Clock size={10} />
-                    <span>{item.prepTime || 10}-{(item.prepTime || 10) + 5}m</span>
-                  </div>
+                  {item.category !== 'Stationery' && (
+                    <div className="flex items-center gap-1 text-[#6B6B6B] text-[10px] font-medium bg-gray-100 px-1.5 py-0.5 rounded-md">
+                      <Clock size={10} />
+                      <span>{item.prepTime || 10}-{(item.prepTime || 10) + 5}m</span>
+                    </div>
+                  )}
                 </div>
                 <p className="item-desc">{item.description}</p>
               </div>
@@ -801,29 +826,31 @@ function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack
         <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Order Details</h2>
       </header>
 
-      {/* Estimated Time Banner */}
-      <div style={{ padding: '0 1.5rem', marginTop: '1rem' }}>
-        <div style={{
-          background: 'linear-gradient(135deg, #FF6B00 0%, #FF8533 100%)',
-          borderRadius: '16px',
-          padding: '1rem 1.25rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          color: 'white',
-          boxShadow: '0 10px 20px -5px rgba(255, 107, 0, 0.3)'
-        }}>
-          <div style={{ background: 'rgba(255,255,255,0.2)', padding: '0.75rem', borderRadius: '12px' }}>
-            <Clock size={24} color="white" />
-          </div>
-          <div>
-            <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, opacity: 0.9 }}>Estimated Wait Time</p>
-            <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: 900 }}>
-              ~{Math.max(...cart.map((i: any) => i.prepTime || 10))}-{Math.max(...cart.map((i: any) => i.prepTime || 10)) + 5} Mins
-            </p>
+      {/* Estimated Time Banner - Only show if there are non-stationery items */}
+      {cart.some(i => i.category !== 'Stationery') && (
+        <div style={{ padding: '0 1.5rem', marginTop: '1rem' }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #FF6B00 0%, #FF8533 100%)',
+            borderRadius: '16px',
+            padding: '1rem 1.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            color: 'white',
+            boxShadow: '0 10px 20px -5px rgba(255, 107, 0, 0.3)'
+          }}>
+            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '0.75rem', borderRadius: '12px' }}>
+              <Clock size={24} color="white" />
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, opacity: 0.9 }}>Estimated Wait Time</p>
+              <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: 900 }}>
+                ~{Math.max(...cart.filter(i => i.category !== 'Stationery').map((i: any) => i.prepTime || 10))}-{Math.max(...cart.filter(i => i.category !== 'Stationery').map((i: any) => i.prepTime || 10)) + 5} Mins
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Scrollable Content Area */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', paddingBottom: '100px' }}>
