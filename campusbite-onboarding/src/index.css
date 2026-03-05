@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", system-ui, sans-serif;
+  --color-primary: #FF8C00;
+  --color-secondary: #000000;
+}
+
+:root {
+  font-family: var(--font-sans);
+  background-color: #ffffff;
+  color: #000000;
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+#root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+@layer base {
+  button {
+    @apply cursor-pointer transition-all active:scale-95;
+  }
+}

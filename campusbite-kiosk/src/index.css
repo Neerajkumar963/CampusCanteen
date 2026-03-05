@@ -585,3 +585,25 @@ input[type=number] {
 
 .bold { font-weight: 700; }
 .primary-text { color: var(--primary); }
+
+/* ── Menu Item Card Image — fixed 4:3 aspect ratio ── */
+.item-img-container {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 14px 14px 0 0;
+  flex-shrink: 0;
+}
+
+.item-img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.menu-item-card:hover .item-img-container img {
+  transform: scale(1.04);
+}
+

@@ -2,8 +2,94 @@ import { useState, useEffect } from 'react';
 import { categories } from '../../data/mockMenu';
 import { Switch } from '../../components/ui/switch';
 import { useStore, API_URL } from '../../store/useStore';
-import { Plus, X, Image as ImageIcon, Check } from 'lucide-react';
+import { Plus, X, Image as ImageIcon, Check, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+
+const CATEGORY_IMAGE_POOLS: Record<string, string[]> = {
+  'burger': [
+    'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80',
+    'https://images.unsplash.com/photo-1550547660-d9450f859349?w=600&q=80',
+    'https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=600&q=80',
+    'https://images.unsplash.com/photo-1530469912745-a215c6b256ea?w=600&q=80',
+  ],
+  'sandwich (grilled)': [
+    'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=600&q=80',
+    'https://images.unsplash.com/photo-1567234669003-dce7a7a88821?w=600&q=80',
+    'https://images.unsplash.com/photo-1553909489-cd47e0907980?w=600&q=80',
+    'https://images.unsplash.com/photo-1620914639083-8577a8d62c0d?w=600&q=80',
+  ],
+  'pizza': [
+    'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&q=80',
+    'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&q=80',
+    'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80',
+    'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=600&q=80',
+    'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=600&q=80',
+  ],
+  'fries': [
+    'https://images.unsplash.com/photo-1576107232684-1279f390859f?w=600&q=80',
+    'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=600&q=80',
+    'https://images.unsplash.com/photo-1518013431117-eb1465fa5752?w=600&q=80',
+    'https://images.unsplash.com/photo-1585032226651-759b368d7246?w=600&q=80',
+  ],
+  'hot dog': [
+    'https://images.unsplash.com/photo-1612392062631-94b7c6234e2c?w=600&q=80',
+    'https://images.unsplash.com/photo-1619734086067-24bf8889ea7d?w=600&q=80',
+    'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=600&q=80',
+  ],
+  'maggi & pasta': [
+    'https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=600&q=80',
+    'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=600&q=80',
+    'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600&q=80',
+    'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=600&q=80',
+  ],
+  'chips & biscuits': [
+    'https://images.unsplash.com/photo-1548041209-05e65c7be1e7?w=600&q=80',
+    'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=600&q=80',
+    'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=600&q=80',
+    'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=600&q=80',
+  ],
+  'cold beverages': [
+    'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=600&q=80',
+    'https://images.unsplash.com/photo-1595981234058-a9302fb97229?w=600&q=80',
+    'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600&q=80',
+    'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=600&q=80',
+  ],
+  'hot beverages': [
+    'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600&q=80',
+    'https://images.unsplash.com/photo-1512568400610-62da28bc8a13?w=600&q=80',
+    'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=600&q=80',
+  ],
+  'mains': [
+    'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&q=80',
+    'https://images.unsplash.com/photo-1603360946369-dc9bb6258143?w=600&q=80',
+  ],
+  'chicken sides': [
+    'https://images.unsplash.com/photo-1598103442097-8b74394b95c8?w=600&q=80',
+    'https://images.unsplash.com/photo-1562967914-608f82629710?w=600&q=80',
+  ],
+  'eggs': [
+    'https://images.unsplash.com/photo-1607690424560-35d967d421c2?w=600&q=80',
+    'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=600&q=80',
+  ],
+  'paranthas': [
+    'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=600&q=80',
+    'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&q=80',
+  ],
+  'stationery': ['https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&q=80'],
+  'books': ['https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600&q=80'],
+  'default': ['https://images.unsplash.com/photo-1567529854338-fc097b962123?w=600&q=80'],
+};
+
+const getItemImage = (item: any): string => {
+  if (item.image && item.image.trim() !== '' && !item.image.includes('placeholder')) return item.image;
+  const cat = (item.category || '').toLowerCase().trim();
+  const pool = CATEGORY_IMAGE_POOLS[cat] || CATEGORY_IMAGE_POOLS['default'];
+  // Simple string hash for indexing if numeric menuId is missing
+  const seed = item.menuId || item.id || item.name || '0';
+  const hash = String(seed).split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0);
+  const index = (Math.abs(hash) % pool.length);
+  return pool[index];
+};
 
 export default function MenuManagement() {
   const menuItems = useStore((state) => state.menu);
@@ -101,32 +187,37 @@ export default function MenuManagement() {
         </button>
       </div>
 
-      {/* Category Filter */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm">
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={() => setSelectedCategory('All')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedCategory === 'All'
-              ? 'bg-[#FF6B00] text-white'
-              : 'bg-[#FFFAF5] text-[#6B6B6B] hover:bg-[#E5E5E5]'
-              }`}
+      {/* Category Filter Dropdown */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-[#FFFAF5] rounded-xl flex-shrink-0">
+            <Filter size={20} color="#FF6B00" />
+          </div>
+          <div className="whitespace-nowrap">
+            <h3 className="text-sm font-bold text-[#1A1A1A] leading-tight">Filter Menu</h3>
+            <p className="text-[10px] text-[#6B6B6B] leading-tight">Select a category to view items</p>
+          </div>
+        </div>
+
+        <div className="relative w-full sm:w-auto">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="appearance-none bg-[#FFFAF5] border-2 border-[#FFEBE0] text-[#1A1A1A] text-sm font-bold py-2.5 pl-4 pr-10 rounded-xl focus:outline-none focus:border-[#FF6B00] transition-all cursor-pointer w-full sm:min-w-[180px]"
           >
-            All Items
-          </button>
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedCategory === category
-                ? 'bg-[#FF6B00] text-white'
-                : 'bg-[#FFFAF5] text-[#6B6B6B] hover:bg-[#E5E5E5]'
-                }`}
-            >
-              {category}
-            </button>
-          ))}
+            <option value="All">All Items</option>
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#FF6B00]">
+            <Plus size={16} className="rotate-45" />
+          </div>
         </div>
       </div>
+
 
       {/* Menu Items Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -137,7 +228,7 @@ export default function MenuManagement() {
           >
             <div className="h-[140px] overflow-hidden">
               <img
-                src={item.image}
+                src={getItemImage(item)}
                 alt={item.name}
                 className="w-full h-full object-cover"
               />

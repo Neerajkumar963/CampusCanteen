@@ -7,6 +7,7 @@ import VendorManagement from './pages/VendorManagement';
 import Subscriptions from './pages/Subscriptions';
 import Revenue from './pages/Revenue';
 import SystemSettings from './pages/SystemSettings';
+import Volunteers from './pages/Volunteers';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="canteens" element={<VendorManagement />} />
           <Route path="subscriptions" element={<Subscriptions />} />
           <Route path="revenue" element={<Revenue />} />
+          <Route path="volunteers" element={<Volunteers />} />
           <Route path="users" element={<div className="p-6">Users & Admins Management (Coming Soon)</div>} />
           <Route path="settings" element={<SystemSettings />} />
         </Route>

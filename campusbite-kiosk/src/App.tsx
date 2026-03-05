@@ -13,13 +13,22 @@ import {
   Banknote,
   Star,
   Zap,
-  Coffee,
   Trash2,
   Minus,
   X,
   FileText,
   Clock,
-  ChefHat
+  ChefHat,
+  Pizza,
+  IceCream,
+  BookOpen,
+  Pencil,
+  Egg,
+  Soup,
+  Beef,
+  Flame,
+  GlassWater,
+  Disc
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { io } from 'socket.io-client';
@@ -66,7 +75,164 @@ interface Vendor {
 
 const INITIAL_VENDORS: Vendor[] = [];
 
+// Category image pools — multiple unique photos per category
+const CATEGORY_IMAGE_POOLS: Record<string, string[]> = {
+  'burger': [
+    'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80',
+    'https://images.unsplash.com/photo-1550547660-d9450f859349?w=600&q=80',
+    'https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=600&q=80',
+    'https://images.unsplash.com/photo-1530469912745-a215c6b256ea?w=600&q=80',
+  ],
+  'sandwich (grilled)': [
+    'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=600&q=80',
+    'https://images.unsplash.com/photo-1567234669003-dce7a7a88821?w=600&q=80',
+    'https://images.unsplash.com/photo-1553909489-cd47e0907980?w=600&q=80',
+    'https://images.unsplash.com/photo-1620914639083-8577a8d62c0d?w=600&q=80',
+  ],
+  'pizza': [
+    'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&q=80',
+    'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&q=80',
+    'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80',
+    'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=600&q=80',
+    'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=600&q=80',
+  ],
+  'fries': [
+    'https://images.unsplash.com/photo-1576107232684-1279f390859f?w=600&q=80',
+    'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=600&q=80',
+    'https://images.unsplash.com/photo-1518013431117-eb1465fa5752?w=600&q=80',
+    'https://images.unsplash.com/photo-1585032226651-759b368d7246?w=600&q=80',
+  ],
+  'hot dog': [
+    'https://images.unsplash.com/photo-1612392062631-94b7c6234e2c?w=600&q=80',
+    'https://images.unsplash.com/photo-1619734086067-24bf8889ea7d?w=600&q=80',
+    'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=600&q=80',
+  ],
+  'maggi & pasta': [
+    'https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=600&q=80',
+    'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=600&q=80',
+    'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600&q=80',
+    'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=600&q=80',
+  ],
+  'maggi&pazzta': [
+    'https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=600&q=80',
+    'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600&q=80',
+  ],
+  'chips & biscuits': [
+    'https://images.unsplash.com/photo-1548041209-05e65c7be1e7?w=600&q=80',
+    'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=600&q=80',
+    'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=600&q=80',
+    'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=600&q=80',
+    'https://images.unsplash.com/photo-1624519622671-ad6f68eb0f80?w=600&q=80',
+  ],
+  'cold beverages': [
+    'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=600&q=80',
+    'https://images.unsplash.com/photo-1595981234058-a9302fb97229?w=600&q=80',
+    'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600&q=80',
+    'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=600&q=80',
+    'https://images.unsplash.com/photo-1437477943432-bc8f661f4a93?w=600&q=80',
+  ],
+  'hot beverages': [
+    'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600&q=80',
+    'https://images.unsplash.com/photo-1512568400610-62da28bc8a13?w=600&q=80',
+    'https://images.unsplash.com/photo-1497515114629-f71d768fd07c?w=600&q=80',
+    'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=600&q=80',
+    'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?w=600&q=80',
+    'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=600&q=80',
+  ],
+  'mains': [
+    'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&q=80',
+    'https://images.unsplash.com/photo-1603360946369-dc9bb6258143?w=600&q=80',
+    'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600&q=80',
+    'https://images.unsplash.com/photo-1516714435131-44d6b64dc6a2?w=600&q=80',
+    'https://images.unsplash.com/photo-1626200419199-391ae4be7a41?w=600&q=80',
+  ],
+  'steamed momos': [
+    'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&q=80',
+    'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=600&q=80',
+    'https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=600&q=80',
+  ],
+  'fried momos': [
+    'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=600&q=80',
+    'https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=600&q=80',
+    'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&q=80',
+  ],
+  'chicken sides': [
+    'https://images.unsplash.com/photo-1598103442097-8b74394b95c8?w=600&q=80',
+    'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80',
+    'https://images.unsplash.com/photo-1562967914-608f82629710?w=600&q=80',
+    'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=600&q=80',
+  ],
+  'eggs': [
+    'https://images.unsplash.com/photo-1607690424560-35d967d421c2?w=600&q=80',
+    'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=600&q=80',
+    'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=600&q=80',
+    'https://images.unsplash.com/photo-1563697776-0d6bb46e1dbc?w=600&q=80',
+    'https://images.unsplash.com/photo-1512058564366-18510be2db19?w=600&q=80',
+  ],
+  'paranthas': [
+    'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=600&q=80',
+    'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&q=80',
+    'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80',
+    'https://images.unsplash.com/photo-1626636964987-71a668e8e5a8?w=600&q=80',
+  ],
+  'add ons': [
+    'https://images.unsplash.com/photo-1625038879254-5c7d73c6a1bd?w=600&q=80',
+    'https://images.unsplash.com/photo-1563697776-0d6bb46e1dbc?w=600&q=80',
+    'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600&q=80',
+  ],
+  'breads': [
+    'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=600&q=80',
+    'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&q=80',
+  ],
+  'punjabi street food': [
+    'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&q=80',
+    'https://images.unsplash.com/photo-1630383249896-424e482df921?w=600&q=80',
+    'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80',
+    'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=600&q=80',
+    'https://images.unsplash.com/photo-1635321594759-9e9b36cab5c7?w=600&q=80',
+  ],
+  'biryani': [
+    'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=600&q=80',
+    'https://images.unsplash.com/photo-1603360946369-dc9bb6258143?w=600&q=80',
+    'https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=600&q=80',
+    'https://images.unsplash.com/photo-1631515243349-e0cb75fb8d3a?w=600&q=80',
+  ],
+  'curries': [
+    'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&q=80',
+    'https://images.unsplash.com/photo-1574653853027-5382a3d23a15?w=600&q=80',
+    'https://images.unsplash.com/photo-1631292784640-2ea7d83e1d8a?w=600&q=80',
+    'https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=600&q=80',
+    'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&q=80',
+    'https://images.unsplash.com/photo-1600891964092-4316c288032e?w=600&q=80',
+  ],
+  'scoops': [
+    'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=600&q=80',
+    'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=600&q=80',
+    'https://images.unsplash.com/photo-1570197571499-166b36435e9f?w=600&q=80',
+    'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=600&q=80',
+    'https://images.unsplash.com/photo-1516559228935-0b788c4eafbf?w=600&q=80',
+  ],
+  'shakes': [
+    'https://images.unsplash.com/photo-1572490122747-3968b75c2905?w=600&q=80',
+    'https://images.unsplash.com/photo-1579954115545-a95591f28bfc?w=600&q=80',
+    'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=600&q=80',
+    'https://images.unsplash.com/photo-1623065422902-30a2d299bbe4?w=600&q=80',
+    'https://images.unsplash.com/photo-1658275648851-57db9bc8bda8?w=600&q=80',
+  ],
+  'stationery': ['https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&q=80'],
+  'books': ['https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600&q=80'],
+  'default': ['https://images.unsplash.com/photo-1567529854338-fc097b962123?w=600&q=80'],
+};
 
+// Returns item image — falls back to pool-selected category image using menuId for uniqueness
+const getItemImage = (item: { image?: string; category?: string; menuId?: string | number }): string => {
+  if (item.image && item.image.trim() !== '') return item.image;
+  const cat = (item.category || '').toLowerCase().trim();
+  const pool = CATEGORY_IMAGE_POOLS[cat] || CATEGORY_IMAGE_POOLS['default'];
+  const id = typeof item.menuId === 'string' ? (parseInt(item.menuId) || 0) : (item.menuId ?? 0);
+  const index = (id % pool.length + pool.length) % pool.length;
+  return pool[index];
+};
 
 const SERVICE_FEES: Record<ServiceType, number> = {
   counter: 0,
@@ -688,12 +854,32 @@ function MenuScreen({ vendorName, vendorId, onBack, onNext, selectedCategory, on
 
   const categoryIcons: any = {
     'Combos': <Zap size={20} />,
-    'Burgers': <Utensils size={20} />,
-    'Snacks': <ShoppingBasket size={20} />,
-    'Sides': <Star size={20} />,
-    'Drinks': <Coffee size={20} />,
-    'Books': <ShoppingBasket size={20} />,
-    'Stationery': <Utensils size={20} />,
+    'Burger': <Beef size={20} />,
+    'Burgers': <Beef size={20} />,
+    'Sandwich (Grilled)': <Utensils size={20} />,
+    'Pizza': <Pizza size={20} />,
+    'Fries': <Star size={20} />,
+    'Hot Dog': <Beef size={20} />,
+    'MAGGI & PASTA': <Soup size={20} />,
+    'MAGGI & PAZTA': <Soup size={20} />,
+    'Chips & Biscuits': <ShoppingBasket size={20} />,
+    'Cold Beverages': <GlassWater size={20} />,
+    'Hot Beverages': <Flame size={20} />,
+    'Mains': <Soup size={20} />,
+    'Steamed Momos': <Utensils size={20} />,
+    'Fried Momos': <Utensils size={20} />,
+    'Chicken Sides': <Beef size={20} />,
+    'Eggs': <Egg size={20} />,
+    'Paranthas': <Disc size={20} />,
+    'Add Ons': <Plus size={20} />,
+    'Breads': <Disc size={20} />,
+    'Punjabi Street Food': <Soup size={20} />,
+    'Biryani': <Soup size={20} />,
+    'Curries': <Soup size={20} />,
+    'Scoops': <IceCream size={20} />,
+    'Shakes': <GlassWater size={20} />,
+    'Stationery': <Pencil size={20} />,
+    'Books': <BookOpen size={20} />,
     'Electronics': <Zap size={20} />
   };
 
@@ -749,8 +935,8 @@ function MenuScreen({ vendorName, vendorId, onBack, onNext, selectedCategory, on
                   <div className="item-details">
                     <div className="flex items-center justify-between">
                       <h3 className="bold">{combo.name}</h3>
-                      <div className="flex items-center gap-1 text-[#6B6B6B] text-[10px] font-medium bg-gray-100 px-1.5 py-0.5 rounded-md">
-                        <Zap size={10} color="#FF6B00" />
+                      <div className="flex items-center gap-1.5 text-[#6B6B6B] text-[9px] font-medium bg-gray-100 px-1.5 py-0.5 rounded-md">
+                        <Zap size={11} color="#FF6B00" />
                         <span>COMBO</span>
                       </div>
                     </div>
@@ -777,7 +963,7 @@ function MenuScreen({ vendorName, vendorId, onBack, onNext, selectedCategory, on
             vendorItems.filter((i: MenuItem) => i.category === selectedCategory).map((item: MenuItem) => (
               <div key={item.menuId} className={`menu-item-card ${!item.available ? 'grayscale opacity-60' : ''}`}>
                 <div className="item-img-container">
-                  <img src={item.image} alt={item.name} />
+                  <img src={getItemImage(item)} alt={item.name} />
                   {item.badge && <div className="card-floating-badge" style={{ fontSize: '0.6rem', padding: '0.2rem 0.5rem' }}>{item.badge}</div>}
                   {!item.available && (
                     <div className="sold-out-overlay">
@@ -791,8 +977,8 @@ function MenuScreen({ vendorName, vendorId, onBack, onNext, selectedCategory, on
                   <div className="flex items-center justify-between">
                     <h3 className="bold">{item.name}</h3>
                     {item.category !== 'Stationery' && (
-                      <div className="flex items-center gap-1 text-[#6B6B6B] text-[10px] font-medium bg-gray-100 px-1.5 py-0.5 rounded-md">
-                        <Clock size={10} />
+                      <div className="flex items-center gap-1.5 text-[#6B6B6B] text-[9px] font-medium bg-gray-100 px-1.5 py-0.5 rounded-md">
+                        <Clock size={11} />
                         <span>{item.prepTime || 10}-{(item.prepTime || 10) + 5}m</span>
                       </div>
                     )}
@@ -947,7 +1133,7 @@ function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack
         <div className="flex-col gap-1" style={{ marginBottom: '2rem' }}>
           {cart.map((item: any) => (
             <div key={item.menuId} className="item-mini-card">
-              <img src={item.image} style={{ width: '60px', height: '60px', borderRadius: '12px', objectFit: 'cover' }} alt={item.name} />
+              <img src={getItemImage(item)} style={{ width: '60px', height: '60px', borderRadius: '12px', objectFit: 'cover' }} alt={item.name} />
               <div style={{ flex: 1 }}>
                 <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>{item.name}</h3>
                 <p style={{ color: 'var(--primary)', fontWeight: 800, margin: '4px 0 0', fontSize: '0.9rem' }}>₹{item.price}</p>
@@ -1377,7 +1563,7 @@ function CheckoutScreen({ cart, serviceFee, platformFee = 0, total, serviceType,
                 const response = await fetch(`${baseUrl}/api/ordering/create-kiosk-order`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ amount: total })
+                  body: JSON.stringify({ amount: total, vendorId: selectedVendor?.id })
                 });
                 const order = await response.json();
 

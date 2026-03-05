@@ -11,6 +11,9 @@ const vendorSchema = new mongoose.Schema({
     unique: true,
     sparse: true
   },
+  razorpayAccountId: {
+    type: String
+  },
   password: {
     type: String,
     required: true

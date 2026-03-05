@@ -183,4 +183,29 @@ export const mockMenuItems: MenuItem[] = [
   },
 ];
 
-export const categories = ['Combos', 'Burgers', 'Snacks', 'Sides', 'Drinks'];
+export const categories = [
+  'Burger',
+  'Sandwich (Grilled)',
+  'Pizza',
+  'Fries',
+  'Hot Dog',
+  'MAGGI & PASTA',
+  'Chips & Biscuits',
+  'Cold Beverages',
+  'Hot Beverages',
+  'Mains',
+  'Steamed Momos',
+  'Fried Momos',
+  'Chicken Sides',
+  'Eggs',
+  'Paranthas',
+  'Add Ons',
+  'Breads',
+  'Punjabi Street Food',
+  'Biryani',
+  'Curries',
+  'Scoops',
+  'Shakes',
+  'Stationery',
+  'Books',
+];

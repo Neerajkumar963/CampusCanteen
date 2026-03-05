@@ -11,7 +11,8 @@ import {
     LayoutDashboard,
     MapPin,
     TrendingUp,
-    Users
+    Users,
+    UserCheck
 } from 'lucide-react';
 
 const menuItems = [
@@ -20,6 +21,7 @@ const menuItems = [
     { icon: Building2, label: 'Canteens', path: '/superadmin/canteens' },
     { icon: CreditCard, label: 'Subscriptions', path: '/superadmin/subscriptions' },
     { icon: TrendingUp, label: 'Revenue Analytics', path: '/superadmin/revenue' },
+    { icon: UserCheck, label: 'Volunteers', path: '/superadmin/volunteers' },
     { icon: Users, label: 'Users / Admins', path: '/superadmin/users' },
     { icon: Settings, label: 'System Settings', path: '/superadmin/settings' },
 ];
