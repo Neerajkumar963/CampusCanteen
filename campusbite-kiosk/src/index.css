@@ -224,31 +224,34 @@ header.app-header.sticky {
 
 .item-img-container {
   width: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 4 / 3;
   margin-bottom: 0.5rem;
   position: relative;
   background: #F9FAFB;
-  border-radius: 8px;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .item-img-container img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
 }
 
 .item-details h3 {
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 0.25rem;
-  line-height: 1.2;
-  height: 2rem;
+  line-height: 1.25;
+  height: 2.2rem; /* Fixed height for 2 lines */
   overflow: hidden;
   display: -webkit-box;
-  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
@@ -256,9 +259,13 @@ header.app-header.sticky {
 .item-desc {
   font-size: 0.7rem;
   color: var(--text-dim);
-  margin-bottom: 0.5rem;
-  height: 1.8rem;
+  margin-bottom: 0.75rem;
+  height: 2rem; /* Fixed height for 2 lines */
   overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.3;
 }
 
 .item-footer {
@@ -585,23 +592,6 @@ input[type=number] {
 
 .bold { font-weight: 700; }
 .primary-text { color: var(--primary); }
-
-/* ── Menu Item Card Image — fixed 4:3 aspect ratio ── */
-.item-img-container {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  overflow: hidden;
-  border-radius: 14px 14px 0 0;
-  flex-shrink: 0;
-}
-
-.item-img-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.3s ease;
-}
 
 .menu-item-card:hover .item-img-container img {
   transform: scale(1.04);
