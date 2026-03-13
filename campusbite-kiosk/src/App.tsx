@@ -270,27 +270,38 @@ export default function App() {
   useEffect(() => {
     let isMounted = true;
     
+    const fetchWithRetry = async (url: string, attempts = 3) => {
+      for (let i = 0; i < attempts; i++) {
+        try {
+          const res = await fetch(url);
+          if (res.ok) return res;
+          if (res.status === 404 || res.status === 400) return res; // Don't retry client errors
+          console.warn(`Fetch attempt ${i + 1} failed with status ${res.status}. Retrying...`);
+        } catch (err) {
+          console.warn(`Fetch attempt ${i + 1} threw error. Retrying...`, err);
+        }
+        if (i < attempts - 1) await new Promise(r => setTimeout(r, 1000));
+      }
+      return fetch(url); // Final attempt
+    };
+
     const fetchCampusAndData = async () => {
       const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      // Ensure no double slashes or trailing slash issues
       const baseUrl = apiBase.endsWith('/') ? apiBase.slice(0, -1) : apiBase;
       const token = new URLSearchParams(window.location.search).get('c');
 
-      console.log('Kiosk Init: starting...', { token, screen });
+      console.log('Kiosk Init: starting...', { token });
 
       if (!token) {
-        console.warn('Kiosk Init: No token found in URL.');
         if (isMounted) setScreen('invalid');
         return;
       }
 
       try {
-        // Step 1: Verify Token and fetch Campus Info
-        console.log(`Kiosk Init: Verifying token ${token} at ${baseUrl}`);
-        const campusRes = await fetch(`${baseUrl}/api/campuses/verify-token?token=${token}`);
+        // Step 1: Verify Token with Retry
+        const campusRes = await fetchWithRetry(`${baseUrl}/api/campuses/verify-token?token=${token}`);
         
         if (!campusRes.ok) {
-          console.error(`Kiosk Init: Token verification failed with status ${campusRes.status}`);
           if (isMounted) setScreen('invalid');
           return;
         }
@@ -299,45 +310,36 @@ export default function App() {
         const campusInfo = campusData.campus;
         
         if (!campusInfo) {
-          console.error('Kiosk Init: No campus info returned from server');
           if (isMounted) setScreen('invalid');
           return;
         }
 
-        console.log(`Kiosk Init: Campus verified - ${campusInfo.name}`);
         if (isMounted) {
           setCampusCode(campusInfo.name);
-          // Only switch to 'welcome' if we haven't already moved to something else
-          setScreen(prev => {
-            console.log(`Kiosk Init: Transitioning screen from ${prev} to welcome`);
-            return 'welcome';
-          });
+          setScreen('welcome');
         }
 
-        // Step 2: Fetch Menu (already in store but good to trigger)
+        // Step 2 & 3: Fetch Menu and Vendors
         fetchMenu();
-
-        // Step 3: Fetch Vendors for this campus
         const vendorRes = await fetch(`${baseUrl}/api/vendors?campusId=${campusInfo._id}`);
-        if (!vendorRes.ok) return;
-        const vendorData = await vendorRes.json();
-        const liveVendors = vendorData.vendors || [];
-
-        const mappedVendors: Vendor[] = liveVendors.map((v: any) => ({
-          id: v.vendorId,
-          name: v.name,
-          description: v.description || '',
-          image: v.image || 'https://images.unsplash.com/photo-1567529854338-fc097b962123?w=800',
-          campus: campusInfo.name,
-          supportedServices: v.supportedServices || ['counter'],
-          deliveryCharge: v.deliveryCharge ?? 20,
-          tableServiceCharge: v.tableServiceCharge ?? 10,
-          hostelServiceCharge: v.hostelServiceCharge ?? 15,
-        }));
-
-        if (isMounted) setVendors(mappedVendors);
+        if (vendorRes.ok) {
+          const vendorData = await vendorRes.json();
+          const liveVendors = vendorData.vendors || [];
+          const mappedVendors: Vendor[] = liveVendors.map((v: any) => ({
+            id: v.vendorId,
+            name: v.name,
+            description: v.description || '',
+            image: v.image || 'https://images.unsplash.com/photo-1567529854338-fc097b962123?w=800',
+            campus: campusInfo.name,
+            supportedServices: v.supportedServices || ['counter'],
+            deliveryCharge: v.deliveryCharge ?? 20,
+            tableServiceCharge: v.tableServiceCharge ?? 10,
+            hostelServiceCharge: v.hostelServiceCharge ?? 15,
+          }));
+          if (isMounted) setVendors(mappedVendors);
+        }
       } catch (err) {
-        console.error('Kiosk Init: Critical failure during load:', err);
+        console.error('Kiosk Init: Critical failure:', err);
         if (isMounted) setScreen('invalid');
       }
     };
@@ -679,6 +681,7 @@ export default function App() {
             serviceId={serviceId}
             customerName={customerName}
             customerPhone={customerPhone}
+            selectedVendor={selectedVendor}
             onBack={() => {
               if (serviceType === 'hostel' || serviceType === 'classroom') {
                 setScreen('verify');
@@ -955,9 +958,7 @@ function MenuScreen({ vendorName, vendorId, onBack, onNext, selectedCategory, on
         <div className="menu-grid">
           {selectedCategory === 'Combos' ? (
             combos.map((combo: any) => {
-              const items = menuItems.filter(mi => combo.items.includes(mi.menuId));
-              const originalPrice = items.reduce((sum, item) => sum + item.price, 0);
-              const discountedPrice = Math.round(originalPrice * (1 - combo.discount / 100));
+              const items = menuItems.filter((mi: MenuItem) => combo.items.includes(mi.menuId));
 
               return (
                 <div key={combo._id} className="menu-item-card combo-card">
@@ -974,13 +975,13 @@ function MenuScreen({ vendorName, vendorId, onBack, onNext, selectedCategory, on
                       </div>
                     </div>
                     <p className="item-desc" style={{ fontSize: '0.75rem', marginTop: '4px' }}>
-                      {items.map(item => item.name).join(' + ')}
+                      {items.map((item: MenuItem) => item.name).join(' + ')}
                     </p>
                   </div>
                   <div className="item-footer">
                     <div className="flex flex-col">
-                      <span className="text-[10px] text-gray-400 line-through">₹{originalPrice}</span>
-                      <span className="price-now">₹{discountedPrice}</span>
+                      <span className="text-[10px] text-gray-400 line-through">₹{items.reduce((sum: number, item: MenuItem) => sum + item.price, 0)}</span>
+                      <span className="price-now">₹{Math.round(items.reduce((sum: number, item: MenuItem) => sum + item.price, 0) * (1 - combo.discount / 100))}</span>
                     </div>
                     <button
                       className="add-item-btn"
@@ -1135,7 +1136,7 @@ function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack
       </header>
 
       {/* Estimated Time Banner - Only show if there are non-stationery items */}
-      {cart.some(i => i.category !== 'Stationery') && (
+      {cart.some((i: any) => i.category !== 'Stationery') && (
         <div style={{ padding: '0 1.5rem', marginTop: '1rem' }}>
           <div style={{
             background: 'linear-gradient(135deg, #FF6B00 0%, #FF8533 100%)',
@@ -1153,7 +1154,7 @@ function ServiceScreen({ cart, selected, serviceId, onSelect, onIdChange, onBack
             <div>
               <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, opacity: 0.9 }}>Estimated Wait Time</p>
               <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: 900 }}>
-                ~{Math.max(...cart.filter(i => i.category !== 'Stationery').map((i: any) => i.prepTime || 10))}-{Math.max(...cart.filter(i => i.category !== 'Stationery').map((i: any) => i.prepTime || 10)) + 5} Mins
+                ~{Math.max(...cart.filter((i: any) => i.category !== 'Stationery').map((i: any) => i.prepTime || 10))}-{Math.max(...cart.filter((i: any) => i.category !== 'Stationery').map((i: any) => i.prepTime || 10)) + 5} Mins
               </p>
             </div>
           </div>
@@ -1522,7 +1523,7 @@ function UserDetailsScreen({ name, phone, onNameChange, onPhoneChange, isVerifie
   );
 }
 
-function CheckoutScreen({ cart, serviceFee, platformFee = 0, total, serviceType, serviceId, customerName, customerPhone, onBack, onConfirm }: any) {
+function CheckoutScreen({ cart, serviceFee, platformFee = 0, total, serviceType, serviceId, customerName, customerPhone, selectedVendor, onBack, onConfirm }: any) {
   const getServiceLabel = (id: string) => {
     switch (id) {
       case 'table': return 'Table Service Charge';
