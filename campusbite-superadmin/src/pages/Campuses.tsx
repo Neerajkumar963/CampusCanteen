@@ -129,7 +129,6 @@ export default function Campuses() {
 
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-                    {/* ... Add New Campus Modal Content ... */}
                     <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                         <div className="px-6 py-4 border-b border-[#E5E5E5] flex items-center justify-between bg-[#FFFAF5]">
                             <h2 className="text-xl font-bold text-[#1E1E1E]">Add New Campus</h2>
@@ -214,46 +213,54 @@ export default function Campuses() {
                                 </button>
                             </div>
 
-                            <div className="bg-[#FFFAF5] p-6 rounded-3xl border-2 border-dashed border-[#FF6B00]/30 mb-6">
-                                <img
-                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-                                        `https://campus-canteen-7ow4.vercel.app/?c=${selectedCampusForQR.qrToken || 'invalid'}`
-                                    )}`}
-                                    alt="QR Code"
-                                    className="w-48 h-48"
-                                />
-                            </div>
+                            {(() => {
+                                const kioskBaseUrl = window.location.hostname === 'localhost' 
+                                    ? 'http://localhost:5173' 
+                                    : 'https://campus-canteen-7ow4.vercel.app';
+                                const kioskFullUrl = `${kioskBaseUrl}/?c=${selectedCampusForQR.qrToken || 'invalid'}`;
 
-                            <p className="text-[#1E1E1E] font-semibold mb-1">{selectedCampusForQR.name}</p>
-                            <p className="text-sm text-[#6B6B6B] mb-6">Scan this code to open the kiosk app for this campus</p>
+                                return (
+                                    <>
+                                        <div className="bg-[#FFFAF5] p-6 rounded-3xl border-2 border-dashed border-[#FF6B00]/30 mb-6">
+                                            <img
+                                                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(kioskFullUrl)}`}
+                                                alt="QR Code"
+                                                className="w-48 h-48"
+                                            />
+                                        </div>
 
-                            <div className="w-full space-y-3">
-                                <button
-                                    onClick={() => {
-                                        const url = `https://campus-canteen-7ow4.vercel.app/?c=${selectedCampusForQR.qrToken || ''}`;
-                                        navigator.clipboard.writeText(url);
-                                        setCopied(true);
-                                        setTimeout(() => setCopied(false), 2000);
-                                    }}
-                                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#FFFAF5] border border-[#E5E5E5] text-[#1E1E1E] rounded-2xl hover:bg-[#FF6B00]/5 transition-colors font-medium group"
-                                >
-                                    {copied ? (
-                                        <><Check size={18} className="text-[#22C55E]" /> Copied!</>
-                                    ) : (
-                                        <><Copy size={18} className="text-[#6B6B6B] group-hover:text-[#FF6B00]" /> Copy Link</>
-                                    )}
-                                </button>
-                                
-                                <a
-                                    href={`https://campus-canteen-7ow4.vercel.app/?c=${selectedCampusForQR.qrToken || ''}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#FF6B00] text-white rounded-2xl hover:bg-[#FF8A00] transition-colors font-medium shadow-lg shadow-[#FF6B00]/20"
-                                >
-                                    <ExternalLink size={18} />
-                                    Open App
-                                </a>
-                            </div>
+                                        <p className="text-[#1E1E1E] font-semibold mb-1">{selectedCampusForQR.name}</p>
+                                        <p className="text-sm text-[#6B6B6B] mb-6">Scan or click to open the kiosk app</p>
+
+                                        <div className="w-full space-y-3">
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(kioskFullUrl);
+                                                    setCopied(true);
+                                                    setTimeout(() => setCopied(false), 2000);
+                                                }}
+                                                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#FFFAF5] border border-[#E5E5E5] text-[#1E1E1E] rounded-2xl hover:bg-[#FF6B00]/5 transition-colors font-medium group"
+                                            >
+                                                {copied ? (
+                                                    <><Check size={18} className="text-[#22C55E]" /> Copied!</>
+                                                ) : (
+                                                    <><Copy size={18} className="text-[#6B6B6B] group-hover:text-[#FF6B00]" /> Copy Link</>
+                                                )}
+                                            </button>
+                                            
+                                            <a
+                                                href={kioskFullUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#FF6B00] text-white rounded-2xl hover:bg-[#FF8A00] transition-colors font-medium shadow-lg shadow-[#FF6B00]/20"
+                                            >
+                                                <ExternalLink size={18} />
+                                                Open App
+                                            </a>
+                                        </div>
+                                    </>
+                                );
+                            })()}
                         </div>
                     </div>
                 </div>
