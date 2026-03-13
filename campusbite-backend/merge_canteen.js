@@ -39,7 +39,87 @@ async function merge() {
     tableServiceCharge: 10,
     hostelServiceCharge: 15,
   });
-  console.log('✅ Created single vendor: Campus Canteen');
+  // Image pools based on categories
+  const POOLS = {
+    'Burger': [
+      'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80',
+      'https://images.unsplash.com/photo-1550547660-d9450f859349?w=600&q=80'
+    ],
+    'Sandwich (Grilled)': [
+      'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=600&q=80',
+      'https://images.unsplash.com/photo-1567234669003-dce7a7a88821?w=600&q=80'
+    ],
+    'Pizza': [
+      'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&q=80',
+      'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&q=80'
+    ],
+    'Fries': [
+      'https://images.unsplash.com/photo-1576107232684-1279f390859f?w=600&q=80',
+      'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=600&q=80'
+    ],
+    'Hot Dog': [
+      'https://images.unsplash.com/photo-1612392062631-94b7c6234e2c?w=600&q=80',
+      'https://images.unsplash.com/photo-1619734086067-24bf8889ea7d?w=600&q=80'
+    ],
+    'MAGGI & PASTA': [
+      'https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=600&q=80',
+      'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=600&q=80'
+    ],
+    'Cold Beverages': [
+      'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=600&q=80',
+      'https://images.unsplash.com/photo-1595981234058-a9302fb97229?w=600&q=80'
+    ],
+    'Hot Beverages': [
+      'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600&q=80',
+      'https://images.unsplash.com/photo-1512568400610-62da28bc8a13?w=600&q=80'
+    ],
+    'Mains': [
+      'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&q=80',
+      'https://images.unsplash.com/photo-1603360946369-dc9bb6258143?w=600&q=80'
+    ],
+    'Steamed Momos': [
+      'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&q=80',
+      'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=600&q=80'
+    ],
+    'Fried Momos': [
+      'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=600&q=80',
+      'https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=600&q=80'
+    ],
+    'Chicken Sides': [
+      'https://images.unsplash.com/photo-1598103442097-8b74394b95c8?w=600&q=80',
+      'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80'
+    ],
+    'Eggs': [
+      'https://images.unsplash.com/photo-1607690424560-35d967d421c2?w=600&q=80',
+      'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=600&q=80'
+    ],
+    'Paranthas': [
+      'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=600&q=80',
+      'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&q=80'
+    ],
+    'Biryani': [
+      'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=600&q=80',
+      'https://images.unsplash.com/photo-1603360946369-dc9bb6258143?w=600&q=80'
+    ],
+    'Curries': [
+      'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&q=80',
+      'https://images.unsplash.com/photo-1574653853027-5382a3d23a15?w=600&q=80'
+    ],
+    'Scoops': [
+      'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=600&q=80',
+      'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=600&q=80'
+    ],
+    'Shakes': [
+      'https://images.unsplash.com/photo-1572490122747-3968b75c2905?w=600&q=80',
+      'https://images.unsplash.com/photo-1579954115545-a95591f28bfc?w=600&q=80'
+    ],
+    'default': ['https://images.unsplash.com/photo-1567529854338-fc097b962123?w=600&q=80']
+  };
+
+  const getImg = (item) => {
+    const pool = POOLS[item.category] || POOLS['default'];
+    return pool[item.menuId % pool.length];
+  };
 
   // All menu items under CANTEEN_VENDOR_ID
   const items = [
@@ -184,7 +264,7 @@ async function merge() {
     { menuId: 617, name: 'Chocolate Shake', description: 'Classic chocolate milkshake', price: 70, category: 'Shakes', prepTime: 5 },
     { menuId: 618, name: 'Banana Shake', description: 'Fresh banana milkshake', price: 60, category: 'Shakes', prepTime: 5 },
     { menuId: 619, name: 'Vanilla Shake', description: 'Classic vanilla milkshake', price: 60, category: 'Shakes', prepTime: 5 },
-  ].map(item => ({ ...item, vendorId: CANTEEN_VENDOR_ID, available: true }));
+  ].map(item => ({ ...item, vendorId: CANTEEN_VENDOR_ID, available: true, image: getImg(item) }));
 
   await Menu.insertMany(items);
   console.log(`✅ Seeded ${items.length} menu items under "Campus Canteen".`);
