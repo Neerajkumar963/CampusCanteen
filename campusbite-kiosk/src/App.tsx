@@ -1602,7 +1602,7 @@ function CheckoutScreen({ cart, serviceFee, platformFee = 0, total, serviceType,
                 const order = await response.json();
 
                 const options = {
-                  key: (import.meta as any).env.VITE_RAZORPAY_KEY_ID || 'rzp_test_SL82HYZ95efW68',
+                  key: (import.meta as any).env.VITE_RAZORPAY_KEY_ID || 'rzp_live_SLeOGciHSnjIOr',
                   amount: order.amount,
                   currency: order.currency,
                   name: "CampusBite Kiosk",
