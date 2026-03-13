@@ -268,27 +268,51 @@ export default function App() {
 
   // --- Initial Data Fetch (Run once on Mount) ---
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchCampusAndData = async () => {
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      // Ensure no double slashes or trailing slash issues
+      const baseUrl = apiBase.endsWith('/') ? apiBase.slice(0, -1) : apiBase;
       const token = new URLSearchParams(window.location.search).get('c');
 
+      console.log('Kiosk Init: starting...', { token, screen });
+
       if (!token) {
-        setScreen('invalid');
+        console.warn('Kiosk Init: No token found in URL.');
+        if (isMounted) setScreen('invalid');
         return;
       }
 
       try {
         // Step 1: Verify Token and fetch Campus Info
+        console.log(`Kiosk Init: Verifying token ${token} at ${baseUrl}`);
         const campusRes = await fetch(`${baseUrl}/api/campuses/verify-token?token=${token}`);
+        
         if (!campusRes.ok) {
-          setScreen('invalid');
+          console.error(`Kiosk Init: Token verification failed with status ${campusRes.status}`);
+          if (isMounted) setScreen('invalid');
           return;
         }
+
         const campusData = await campusRes.json();
         const campusInfo = campusData.campus;
+        
+        if (!campusInfo) {
+          console.error('Kiosk Init: No campus info returned from server');
+          if (isMounted) setScreen('invalid');
+          return;
+        }
 
-        setCampusCode(campusInfo.name);
-        setScreen('welcome');
+        console.log(`Kiosk Init: Campus verified - ${campusInfo.name}`);
+        if (isMounted) {
+          setCampusCode(campusInfo.name);
+          // Only switch to 'welcome' if we haven't already moved to something else
+          setScreen(prev => {
+            console.log(`Kiosk Init: Transitioning screen from ${prev} to welcome`);
+            return 'welcome';
+          });
+        }
 
         // Step 2: Fetch Menu (already in store but good to trigger)
         fetchMenu();
@@ -311,21 +335,28 @@ export default function App() {
           hostelServiceCharge: v.hostelServiceCharge ?? 15,
         }));
 
-        setVendors(mappedVendors);
+        if (isMounted) setVendors(mappedVendors);
       } catch (err) {
-        console.error('Failed to load campus data:', err);
-        setScreen('invalid');
+        console.error('Kiosk Init: Critical failure during load:', err);
+        if (isMounted) setScreen('invalid');
       }
     };
 
     fetchCampusAndData();
 
-    // Fetch platform fee setting from backend
-    const baseUrl2 = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    // Fetch platform fee setting
+    const apiBase2 = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const baseUrl2 = apiBase2.endsWith('/') ? apiBase2.slice(0, -1) : apiBase2;
     fetch(`${baseUrl2}/api/settings/platform`)
       .then(r => r.json())
-      .then(data => setPlatformFeeEnabled(data.platformFeeEnabled ?? true))
-      .catch(() => { }); // Default to enabled if fetch fails
+      .then(data => {
+        if (isMounted) setPlatformFeeEnabled(data.platformFeeEnabled ?? true);
+      })
+      .catch(() => { });
+
+    return () => {
+      isMounted = false;
+    };
   }, []); // Run only ONCE on mount
 
   // --- Real-time Listeners (Order Status & Vendor Services) ---
