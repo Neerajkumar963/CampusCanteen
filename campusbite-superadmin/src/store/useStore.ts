@@ -7,6 +7,7 @@ export interface Campus {
     name: string;
     code: string;
     logo: string;
+    qrToken?: string;
     status: 'Active' | 'Disabled';
     canteensCount: number;
 }

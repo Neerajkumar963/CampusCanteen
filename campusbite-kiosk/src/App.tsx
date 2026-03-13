@@ -266,6 +266,7 @@ export default function App() {
   const myOrders = useStore(state => state.myOrders);
   const addOrder = useStore(state => state.addOrder);
 
+  // --- Initial Data Fetch (Run once on Mount) ---
   useEffect(() => {
     const fetchCampusAndData = async () => {
       const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -311,10 +312,6 @@ export default function App() {
         }));
 
         setVendors(mappedVendors);
-
-        // Step 4: Initial Combos Fetch (if any)
-        // If there's a vendor already selected or we just want to load all
-        // We'll fetch specifically when vendor is selected
       } catch (err) {
         console.error('Failed to load campus data:', err);
         setScreen('invalid');
@@ -329,9 +326,11 @@ export default function App() {
       .then(r => r.json())
       .then(data => setPlatformFeeEnabled(data.platformFeeEnabled ?? true))
       .catch(() => { }); // Default to enabled if fetch fails
+  }, []); // Run only ONCE on mount
 
-    // Setup socket listeners
-    socket.on('order_status_update', (data: any) => {
+  // --- Real-time Listeners (Order Status & Vendor Services) ---
+  useEffect(() => {
+    const handleStatusUpdate = (data: any) => {
       // Check against orderId which is what the backend sends as 'id', or other common ID fields
       const matches = lastOrder && (
         data.id === lastOrder.orderId ||
@@ -342,9 +341,9 @@ export default function App() {
       if (matches) {
         setLastOrder((prev: any) => ({ ...prev, status: data.status }));
       }
-    });
+    };
 
-    socket.on('vendor_services_updated', (updatedVendor: any) => {
+    const handleVendorUpdate = (updatedVendor: any) => {
       setVendors(prev => prev.map(v => {
         if (v.id === updatedVendor.vendorId) {
           return {
@@ -370,11 +369,14 @@ export default function App() {
         }
         return prev;
       });
-    });
+    };
+
+    socket.on('order_status_update', handleStatusUpdate);
+    socket.on('vendor_services_updated', handleVendorUpdate);
 
     return () => {
-      socket.off('order_status_update');
-      socket.off('vendor_services_updated');
+      socket.off('order_status_update', handleStatusUpdate);
+      socket.off('vendor_services_updated', handleVendorUpdate);
     };
   }, [lastOrder]);
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
-import { Search, Plus, MoreVertical, X } from 'lucide-react';
+import { Search, Plus, MoreVertical, X, QrCode, ExternalLink, Copy, Check } from 'lucide-react';
 
 export default function Campuses() {
     const { campuses, fetchCampuses, createCampus } = useStore();
@@ -8,6 +8,8 @@ export default function Campuses() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [formData, setFormData] = useState({ name: '', code: '', logo: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedCampusForQR, setSelectedCampusForQR] = useState<any>(null);
+    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         fetchCampuses();
@@ -104,9 +106,18 @@ export default function Campuses() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <button className="p-2 text-[#6B6B6B] hover:bg-[#E5E5E5] rounded-lg transition-colors">
-                                                <MoreVertical size={18} />
-                                            </button>
+                                            <div className="flex justify-end items-center gap-2">
+                                                <button
+                                                    onClick={() => setSelectedCampusForQR(campus)}
+                                                    className="p-2 text-[#FF6B00] hover:bg-[#FF6B00]/10 rounded-lg transition-colors"
+                                                    title="View QR Code"
+                                                >
+                                                    <QrCode size={18} />
+                                                </button>
+                                                <button className="p-2 text-[#6B6B6B] hover:bg-[#E5E5E5] rounded-lg transition-colors">
+                                                    <MoreVertical size={18} />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -118,6 +129,7 @@ export default function Campuses() {
 
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+                    {/* ... Add New Campus Modal Content ... */}
                     <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                         <div className="px-6 py-4 border-b border-[#E5E5E5] flex items-center justify-between bg-[#FFFAF5]">
                             <h2 className="text-xl font-bold text-[#1E1E1E]">Add New Campus</h2>
@@ -183,6 +195,66 @@ export default function Campuses() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* QR Code Modal */}
+            {selectedCampusForQR && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-[2rem] w-full max-w-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="p-8 flex flex-col items-center text-center">
+                            <div className="flex justify-between w-full mb-6">
+                                <h2 className="text-xl font-bold text-[#1E1E1E]">Kiosk QR Code</h2>
+                                <button
+                                    onClick={() => setSelectedCampusForQR(null)}
+                                    className="text-[#6B6B6B] hover:text-[#1E1E1E] transition-colors"
+                                >
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            <div className="bg-[#FFFAF5] p-6 rounded-3xl border-2 border-dashed border-[#FF6B00]/30 mb-6">
+                                <img
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                                        `https://campus-canteen-7ow4.vercel.app/?c=${selectedCampusForQR.qrToken || 'invalid'}`
+                                    )}`}
+                                    alt="QR Code"
+                                    className="w-48 h-48"
+                                />
+                            </div>
+
+                            <p className="text-[#1E1E1E] font-semibold mb-1">{selectedCampusForQR.name}</p>
+                            <p className="text-sm text-[#6B6B6B] mb-6">Scan this code to open the kiosk app for this campus</p>
+
+                            <div className="w-full space-y-3">
+                                <button
+                                    onClick={() => {
+                                        const url = `https://campus-canteen-7ow4.vercel.app/?c=${selectedCampusForQR.qrToken || ''}`;
+                                        navigator.clipboard.writeText(url);
+                                        setCopied(true);
+                                        setTimeout(() => setCopied(false), 2000);
+                                    }}
+                                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#FFFAF5] border border-[#E5E5E5] text-[#1E1E1E] rounded-2xl hover:bg-[#FF6B00]/5 transition-colors font-medium group"
+                                >
+                                    {copied ? (
+                                        <><Check size={18} className="text-[#22C55E]" /> Copied!</>
+                                    ) : (
+                                        <><Copy size={18} className="text-[#6B6B6B] group-hover:text-[#FF6B00]" /> Copy Link</>
+                                    )}
+                                </button>
+                                
+                                <a
+                                    href={`https://campus-canteen-7ow4.vercel.app/?c=${selectedCampusForQR.qrToken || ''}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#FF6B00] text-white rounded-2xl hover:bg-[#FF8A00] transition-colors font-medium shadow-lg shadow-[#FF6B00]/20"
+                                >
+                                    <ExternalLink size={18} />
+                                    Open App
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
