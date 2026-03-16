@@ -7,7 +7,6 @@ const mongoose = require('mongoose');
 const cron = require('node-cron');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
-const axios = require('axios'); // For faster HTTP requests
 
 const ABBREVIATIONS = {
   'LPU': 'Lovely Professional University',
@@ -567,11 +566,12 @@ app.get('/api/external/universities', async (req, res) => {
     }
 
     // Using HTTP directly from backend for maximum speed/stability
-    const response = await axios.get(`http://universities.hipolabs.com/search?country=India&name=${encodeURIComponent(name)}`, {
-      timeout: 5000 // 5 seconds timeout
+    const response = await fetch(`http://universities.hipolabs.com/search?country=India&name=${encodeURIComponent(name)}`, {
+      signal: AbortSignal.timeout(5000) // 5 seconds timeout
     });
+    const universities = await response.json();
 
-    res.json({ success: true, universities: response.data || [] });
+    res.json({ success: true, universities: universities || [] });
   } catch (err) {
     console.error('External API Proxy Error:', err.message);
     res.status(502).json({ success: false, message: 'External service unreachable', error: err.message });
