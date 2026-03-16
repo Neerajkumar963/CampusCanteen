@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import { ShoppingBag, IndianRupee, UtensilsCrossed, Clock } from 'lucide-react';
 import { mockMenuItems } from '../../data/mockMenu';
@@ -5,13 +6,25 @@ import { motion } from 'motion/react';
 
 export default function Dashboard() {
   const orders = useStore((state) => state.orders);
+  const menu = useStore((state) => state.menu);
+  const currentVendor = useStore((state) => state.currentVendor);
   const getTodayOrders = useStore((state) => state.getTodayOrders);
   const getTodayRevenue = useStore((state) => state.getTodayRevenue);
+  const fetchOrders = useStore((state) => state.fetchOrders);
+
+  useEffect(() => {
+    if (currentVendor?.vendorId) {
+      fetchOrders(currentVendor.vendorId);
+    }
+  }, [currentVendor?.vendorId, fetchOrders]);
 
   const todayOrders = getTodayOrders();
   const todayRevenue = getTodayRevenue();
-  const pendingOrders = orders.filter((order) => order.status === 'Pending');
-  const activeItems = mockMenuItems.filter((item) => item.available).length;
+  const pendingOrders = orders.filter((order) => 
+    order.status === 'Pending' && 
+    (order.vendorId === currentVendor?.vendorId)
+  );
+  const activeItems = menu.filter((item) => item.available).length;
 
   const stats = [
     {

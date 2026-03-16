@@ -97,6 +97,7 @@ interface StoreState {
   addCombo: (combo: Omit<Combo, '_id'>) => Promise<void>;
   updateCombo: (id: string, updates: Partial<Combo>) => Promise<void>;
   deleteCombo: (id: string) => Promise<void>;
+  fetchOrders: (vendorId: string) => Promise<void>;
 }
 
 const getInitialVendor = () => {
@@ -419,6 +420,17 @@ export const useStore = create<StoreState>((set, get) => {
         }
       } catch (err) {
         console.error('Failed to delete combo:', err);
+      }
+    },
+    fetchOrders: async (vendorId) => {
+      try {
+        const response = await fetch(`${API_URL}/api/orders?vendorId=${vendorId}`);
+        const data = await response.json();
+        if (data.success) {
+          set({ orders: data.orders });
+        }
+      } catch (err) {
+        console.error('Failed to fetch orders:', err);
       }
     },
   };

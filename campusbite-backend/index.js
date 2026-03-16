@@ -386,11 +386,8 @@ io.on('connection', async (socket) => {
 
   // Send initial data to connected clients
   try {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const orders = await Order.find({ createdAt: { $gte: startOfDay } }).sort({ createdAt: 1 });
     const menuItems = await Menu.find();
-    socket.emit('initial_orders', orders);
+    // socket.emit('initial_orders', orders); // Removed global orders leak
     socket.emit('initial_menu', menuItems);
   } catch(err) {
     console.error('Socket initial data error:', err);
@@ -956,6 +953,30 @@ app.patch('/api/volunteer/:id/status', async (req, res) => {
   }
 });
 // -----------------------------
+
+// 0. Get Orders (For Admin Dashboard)
+app.get('/api/orders', async (req, res) => {
+  try {
+    const { vendorId } = req.query;
+    if (!vendorId) {
+      return res.status(400).json({ success: false, message: 'vendorId is required' });
+    }
+
+    // Fetch today's orders for this specific vendor
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const orders = await Order.find({
+      vendorId,
+      createdAt: { $gte: startOfDay }
+    }).sort({ createdAt: -1 });
+
+    res.json({ success: true, orders });
+  } catch (err) {
+    console.error('Fetch Orders Error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch orders' });
+  }
+});
 
 // 1. Submit New Order (From Kiosk)
 app.post('/api/orders', async (req, res) => {

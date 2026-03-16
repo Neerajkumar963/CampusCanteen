@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import { Search, Home, School, Utensils, Store, Smartphone, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -9,9 +9,16 @@ export default function Orders() {
   const currentVendor = useStore((state) => state.currentVendor);
   const updateOrderStatus = useStore((state) => state.updateOrderStatus);
   const updateOrderPaymentStatus = useStore((state) => state.updateOrderPaymentStatus);
+  const fetchOrders = useStore((state) => state.fetchOrders);
   const [filter, setFilter] = useState<FilterType>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedOrders, setExpandedOrders] = useState<Record<number, boolean>>({});
+
+  useEffect(() => {
+    if (currentVendor?.vendorId) {
+      fetchOrders(currentVendor.vendorId);
+    }
+  }, [currentVendor?.vendorId, fetchOrders]);
 
   const toggleOrderDetails = (orderId: number) => {
     console.log('Toggling order:', orderId, typeof orderId);
