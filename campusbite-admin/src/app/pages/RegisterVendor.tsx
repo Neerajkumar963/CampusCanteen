@@ -13,7 +13,12 @@ export default function RegisterVendor() {
         description: ''
     });
     const [campuses, setCampuses] = useState<any[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [externalCampuses, setExternalCampuses] = useState<any[]>([]);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [selectedCampus, setSelectedCampus] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSearchingGlobal, setIsSearchingGlobal] = useState(false);
     const [error, setError] = useState('');
     const [isSuccess, setIsSuccess] = useState(false);
     const navigate = useNavigate();
@@ -33,16 +38,70 @@ export default function RegisterVendor() {
         fetchCampuses();
     }, []);
 
+    useEffect(() => {
+        if (searchTerm.length < 3) {
+            setExternalCampuses([]);
+            return;
+        }
+
+        const delayDebounceFn = setTimeout(async () => {
+            setIsSearchingGlobal(true);
+            try {
+                const response = await fetch(`https://universities.hipolabs.com/search?country=India&name=${searchTerm}`);
+                const data = await response.json();
+                // Filter out those already in local list to avoid duplicates
+                const filtered = data.filter((ext: any) => 
+                    !campuses.some(local => local.name.toLowerCase() === ext.name.toLowerCase())
+                );
+                setExternalCampuses(filtered.slice(0, 10)); // Limit to 10
+            } catch (err) {
+                console.error('Global search error:', err);
+            } finally {
+                setIsSearchingGlobal(false);
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm, campuses]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!selectedCampus) {
+            setError('Please search and select a campus');
+            return;
+        }
+
         setIsLoading(true);
         setError('');
 
         try {
+            let finalCampusId = selectedCampus._id;
+
+            // If it's an external campus, create it first
+            if (!finalCampusId) {
+                const campusRes = await fetch(`${API_URL}/api/campuses`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: selectedCampus.name,
+                        code: selectedCampus.domains ? selectedCampus.domains[0] : selectedCampus.name.toLowerCase().replace(/\s+/g, '-'),
+                    }),
+                });
+                const campusData = await campusRes.json();
+                if (campusData.success) {
+                    finalCampusId = campusData.campus._id;
+                } else {
+                    throw new Error(campusData.message || 'Failed to register campus');
+                }
+            }
+
             const response = await fetch(`${API_URL}/api/vendors/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    ...formData,
+                    campusId: finalCampusId
+                }),
             });
 
             const data = await response.json();
@@ -164,28 +223,101 @@ export default function RegisterVendor() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-[#1E1E1E] mb-2 px-1">Select Campus</label>
+                            <label className="block text-sm font-bold text-[#1E1E1E] mb-2 px-1">Search & Select Campus</label>
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#6B6B6B] group-focus-within:text-[#FF6B00] transition-colors z-10">
                                     <School size={20} />
                                 </div>
-                                <select
+                                <input
+                                    type="text"
                                     required
-                                    value={formData.campusId}
-                                    onChange={(e) => setFormData({ ...formData, campusId: e.target.value })}
-                                    className="w-full pl-11 pr-10 py-3.5 bg-[#FFFAF5] border-2 border-transparent focus:border-[#FF6B00] focus:bg-white rounded-2xl outline-none font-medium transition-all appearance-none cursor-pointer"
-                                    style={{ color: formData.campusId ? '#000' : '#888' }}
-                                >
-                                    <option value="" disabled hidden>Choose your campus</option>
-                                    {campuses.map(campus => (
-                                        <option key={campus._id} value={campus._id} style={{ color: '#000' }}>
-                                            {campus.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-[#6B6B6B]">
-                                    <ChevronDown size={20} />
-                                </div>
+                                    value={searchTerm}
+                                    onFocus={() => setShowDropdown(true)}
+                                    onChange={(e) => {
+                                        setSearchTerm(e.target.value);
+                                        setShowDropdown(true);
+                                        if (selectedCampus) setSelectedCampus(null);
+                                    }}
+                                    className="w-full pl-11 pr-10 py-3.5 bg-[#FFFAF5] border-2 border-transparent focus:border-[#FF6B00] focus:bg-white rounded-2xl outline-none font-medium transition-all"
+                                    placeholder="Search for your college/university..."
+                                />
+                                {isSearchingGlobal && (
+                                    <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                        <motion.div
+                                            animate={{ rotate: 360 }}
+                                            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                            className="w-4 h-4 border-2 border-[#FF6B00]/30 border-t-[#FF6B00] rounded-full"
+                                        />
+                                    </div>
+                                )}
+                                
+                                {showDropdown && (searchTerm.length > 0 || campuses.length > 0) && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-[#E5E5E5] overflow-hidden z-50 max-h-[300px] overflow-y-auto"
+                                    >
+                                        {/* Local Matches */}
+                                        {campuses.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase())).map(campus => (
+                                            <button
+                                                key={campus._id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setSearchTerm(campus.name);
+                                                    setSelectedCampus(campus);
+                                                    setShowDropdown(false);
+                                                }}
+                                                className="w-full text-left px-5 py-3 hover:bg-[#FFF5EE] transition-colors flex items-center justify-between group"
+                                            >
+                                                <div>
+                                                    <p className="font-bold text-[#1E1E1E] group-hover:text-[#FF6B00]">{campus.name}</p>
+                                                    <p className="text-xs text-[#6B6B6B]">Available in our system</p>
+                                                </div>
+                                                <div className="w-5 h-5 bg-[#F0FDF4] rounded-full flex items-center justify-center text-[#22C55E]">
+                                                    <CheckCircle2 size={12} />
+                                                </div>
+                                            </button>
+                                        ))}
+
+                                        {/* External Matches */}
+                                        {externalCampuses.length > 0 && (
+                                            <>
+                                                <div className="bg-[#FFFAF5] px-5 py-2">
+                                                    <p className="text-[10px] font-bold text-[#FF6B00] uppercase tracking-wider">Universities Database</p>
+                                                </div>
+                                                {externalCampuses.map((campus, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setSearchTerm(campus.name);
+                                                            setSelectedCampus(campus);
+                                                            setShowDropdown(false);
+                                                        }}
+                                                        className="w-full text-left px-5 py-3 hover:bg-[#FFF5EE] transition-colors group"
+                                                    >
+                                                        <p className="font-bold text-[#1E1E1E] group-hover:text-[#FF6B00]">{campus.name}</p>
+                                                        <p className="text-xs text-[#6B6B6B]">{campus['state-province'] || 'India'}</p>
+                                                    </button>
+                                                ))}
+                                            </>
+                                        )}
+
+                                        {searchTerm.length >= 3 && !isSearchingGlobal && externalCampuses.length === 0 && campuses.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedCampus({ name: searchTerm, _id: null });
+                                                    setShowDropdown(false);
+                                                }}
+                                                className="w-full text-left px-5 py-4 hover:bg-[#FFF5EE] transition-colors border-t border-[#E5E5E5]"
+                                            >
+                                                <p className="text-[#FF6B00] font-bold">Add "{searchTerm}" as new campus</p>
+                                                <p className="text-xs text-[#6B6B6B]">Your campus will be added to our platform</p>
+                                            </button>
+                                        )}
+                                    </motion.div>
+                                )}
                             </div>
                         </div>
 

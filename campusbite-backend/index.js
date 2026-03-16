@@ -558,12 +558,26 @@ app.get('/api/campuses/verify-token', async (req, res) => {
   }
 });
 
-// CREATE Campus
+// CREATE Campus (Idempotent: returns existing if name or code matches)
 app.post('/api/campuses', async (req, res) => {
   try {
     const { name, code, logo } = req.body;
-    const qrToken = crypto.randomBytes(4).toString('hex'); // Generate unique random token
-    const campus = new Campus({ name, code, logo, qrToken });
+    
+    // Check if campus already exists by code or name
+    let campus = await Campus.findOne({ 
+      $or: [
+        { code: code },
+        { name: { $regex: new RegExp(`^${name}$`, 'i') } }
+      ]
+    });
+
+    if (campus) {
+      const canteensCount = await Vendor.countDocuments({ campusId: campus._id, role: 'vendor' });
+      return res.json({ success: true, campus: { ...campus.toObject(), canteensCount } });
+    }
+
+    const qrToken = crypto.randomBytes(4).toString('hex');
+    campus = new Campus({ name, code, logo, qrToken });
     await campus.save();
     res.json({ success: true, campus: { ...campus.toObject(), canteensCount: 0 } });
   } catch (err) {
