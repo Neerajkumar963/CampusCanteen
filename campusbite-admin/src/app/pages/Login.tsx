@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
 import { useStore, API_URL } from '../store/useStore';
@@ -12,6 +12,13 @@ export default function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const login = useStore((state) => state.login);
+    const currentVendor = useStore((state) => state.currentVendor);
+
+    useEffect(() => {
+        if (currentVendor) {
+            navigate('/admin', { replace: true });
+        }
+    }, [currentVendor, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -99,6 +99,15 @@ interface StoreState {
   deleteCombo: (id: string) => Promise<void>;
 }
 
+const getInitialVendor = () => {
+  try {
+    const item = localStorage.getItem('currentVendor');
+    return item ? JSON.parse(item) : null;
+  } catch {
+    return null;
+  }
+};
+
 export const useStore = create<StoreState>((set, get) => {
   // Listen for socket events
   socket.on('initial_orders', (initialOrders) => {
@@ -166,8 +175,11 @@ export const useStore = create<StoreState>((set, get) => {
   });
 
   return {
-    currentVendor: null,
-    login: (vendor) => set({ currentVendor: vendor }),
+    currentVendor: getInitialVendor(),
+    login: (vendor) => {
+      localStorage.setItem('currentVendor', JSON.stringify(vendor));
+      set({ currentVendor: vendor });
+    },
     logout: () => {
       localStorage.removeItem('currentVendor');
       set({ currentVendor: null, orders: [], menu: [] });
