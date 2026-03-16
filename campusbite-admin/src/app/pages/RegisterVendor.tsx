@@ -4,6 +4,18 @@ import { useNavigate, Link } from 'react-router';
 import { API_URL } from '../store/useStore';
 import { Store, User, Lock, KeyRound, ArrowRight, CheckCircle2, MessageSquare, School, ChevronDown } from 'lucide-react';
 
+const ABBREVIATIONS: Record<string, string> = {
+    'LPU': 'Lovely Professional University',
+    'CU': 'Chandigarh University',
+    'CGC': 'Chandigarh Group of Colleges',
+    'PU': 'Panjab University',
+    'TU': 'Thapar University',
+    'PEC': 'Punjab Engineering College',
+    'IIT': 'Indian Institute of Technology',
+    'NIT': 'National Institute of Technology',
+    'IIM': 'Indian Institute of Management'
+};
+
 export default function RegisterVendor() {
     const [formData, setFormData] = useState({
         vendorId: '',
@@ -39,7 +51,7 @@ export default function RegisterVendor() {
     }, []);
 
     useEffect(() => {
-        if (searchTerm.length < 3) {
+        if (searchTerm.length < 2) {
             setExternalCampuses([]);
             return;
         }
@@ -47,7 +59,13 @@ export default function RegisterVendor() {
         const delayDebounceFn = setTimeout(async () => {
             setIsSearchingGlobal(true);
             try {
-                const response = await fetch(`https://universities.hipolabs.com/search?country=India&name=${searchTerm}`);
+                let apiSearchTerm = searchTerm;
+                const upperSearch = searchTerm.toUpperCase();
+                if (ABBREVIATIONS[upperSearch]) {
+                    apiSearchTerm = ABBREVIATIONS[upperSearch];
+                }
+
+                const response = await fetch(`https://universities.hipolabs.com/search?country=India&name=${apiSearchTerm}`);
                 const data = await response.json();
                 // Filter out those already in local list to avoid duplicates
                 const filtered = data.filter((ext: any) => 
