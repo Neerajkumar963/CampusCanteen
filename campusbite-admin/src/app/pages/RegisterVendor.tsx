@@ -59,13 +59,13 @@ export default function RegisterVendor() {
         const delayDebounceFn = setTimeout(async () => {
             setIsSearchingGlobal(true);
             try {
-                let apiSearchTerm = searchTerm;
-                const upperSearch = searchTerm.toUpperCase();
+                let apiSearchTerm = searchTerm.trim();
+                const upperSearch = apiSearchTerm.toUpperCase();
                 if (ABBREVIATIONS[upperSearch]) {
                     apiSearchTerm = ABBREVIATIONS[upperSearch];
                 }
 
-                const response = await fetch(`https://universities.hipolabs.com/search?country=India&name=${apiSearchTerm}`);
+                const response = await fetch(`https://universities.hipolabs.com/search?country=India&name=${encodeURIComponent(apiSearchTerm)}`);
                 const data = await response.json();
                 // Filter out those already in local list to avoid duplicates
                 const filtered = data.filter((ext: any) => 
@@ -77,7 +77,7 @@ export default function RegisterVendor() {
             } finally {
                 setIsSearchingGlobal(false);
             }
-        }, 500);
+        }, 600);
 
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm, campuses]);
@@ -297,6 +297,17 @@ export default function RegisterVendor() {
                                             </button>
                                         ))}
 
+                                        {isSearchingGlobal && (
+                                            <div className="px-5 py-6 flex flex-col items-center justify-center gap-3 border-t border-[#F5F5F5]">
+                                                <motion.div
+                                                    animate={{ rotate: 360 }}
+                                                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                                    className="w-6 h-6 border-2 border-[#FF6B00]/30 border-t-[#FF6B00] rounded-full"
+                                                />
+                                                <p className="text-sm font-medium text-[#6B6B6B]">Searching across India...</p>
+                                            </div>
+                                        )}
+
                                         {/* External Matches */}
                                         {externalCampuses.length > 0 && (
                                             <>
@@ -321,7 +332,7 @@ export default function RegisterVendor() {
                                             </>
                                         )}
 
-                                        {searchTerm.length >= 3 && !isSearchingGlobal && externalCampuses.length === 0 && campuses.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+                                        {searchTerm.length >= 2 && !isSearchingGlobal && externalCampuses.length === 0 && campuses.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
                                             <button
                                                 type="button"
                                                 onClick={() => {
@@ -331,7 +342,7 @@ export default function RegisterVendor() {
                                                 className="w-full text-left px-5 py-4 hover:bg-[#FFF5EE] transition-colors border-t border-[#E5E5E5]"
                                             >
                                                 <p className="text-[#FF6B00] font-bold">Add "{searchTerm}" as new campus</p>
-                                                <p className="text-xs text-[#6B6B6B]">Your campus will be added to our platform</p>
+                                                <p className="text-xs text-[#6B6B6B]">Campus not found? Add it manually.</p>
                                             </button>
                                         )}
                                     </motion.div>
