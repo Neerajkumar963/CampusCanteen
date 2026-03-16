@@ -1098,11 +1098,13 @@ app.get('/api/menu', async (req, res) => {
 
 app.post('/api/menu', async (req, res) => {
   try {
-    // Auto-generate menuId based on current count
-    const count = await Menu.countDocuments();
+    // Auto-generate menuId based on the highest existing menuId
+    const highestMenu = await Menu.findOne().sort('-menuId');
+    const nextMenuId = highestMenu && highestMenu.menuId ? highestMenu.menuId + 1 : 1;
+    
     const newItem = new Menu({
       ...req.body,
-      menuId: count + 1 // Simple auto-increment for mock
+      menuId: nextMenuId
     });
     const saved = await newItem.save();
     io.emit('menu_updated', saved);
