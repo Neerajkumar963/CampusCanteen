@@ -577,7 +577,11 @@ app.post('/api/campuses', async (req, res) => {
 // New Vendor Self-Registration
 app.post('/api/vendors/register', async (req, res) => {
   try {
-    const { vendorId, password, name, campusName, description } = req.body;
+    const { vendorId, password, name, campusId, description } = req.body;
+
+    if (!vendorId || !password || !name || !campusId) {
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
 
     // 1. Check if vendorId already exists
     const existingVendor = await Vendor.findOne({ vendorId });
@@ -585,17 +589,13 @@ app.post('/api/vendors/register', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Vendor ID already exists' });
     }
 
-    // 2. Map Campus Name to ID (Find or Create)
-    let campus = await Campus.findOne({ name: { $regex: new RegExp(`^${campusName}$`, 'i') } });
+    // 2. Validate Campus ID
+    let campus;
+    if (mongoose.isValidObjectId(campusId)) {
+      campus = await Campus.findById(campusId);
+    }
     if (!campus) {
-      // Create a skeleton campus if not found
-      const qrToken = crypto.randomBytes(4).toString('hex');
-      campus = new Campus({
-        name: campusName,
-        code: campusName.toUpperCase().replace(/\s+/g, '_').substring(0, 10),
-        qrToken
-      });
-      await campus.save();
+      return res.status(400).json({ success: false, message: 'Selected campus not found' });
     }
 
     // 3. Create Vendor

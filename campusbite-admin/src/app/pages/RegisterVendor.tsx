@@ -1,21 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate, Link } from 'react-router';
 import { API_URL } from '../store/useStore';
-import { Store, User, Lock, KeyRound, ArrowRight, CheckCircle2, MessageSquare, School } from 'lucide-react';
+import { Store, User, Lock, KeyRound, ArrowRight, CheckCircle2, MessageSquare, School, ChevronDown } from 'lucide-react';
 
 export default function RegisterVendor() {
     const [formData, setFormData] = useState({
         vendorId: '',
         password: '',
         name: '',
-        campusName: '',
+        campusId: '',
         description: ''
     });
+    const [campuses, setCampuses] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [isSuccess, setIsSuccess] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchCampuses = async () => {
+            try {
+                const response = await fetch(`${API_URL}/api/campuses`);
+                const data = await response.json();
+                if (data.success) {
+                    setCampuses(data.campuses || []);
+                }
+            } catch (err) {
+                console.error('Failed to fetch campuses:', err);
+            }
+        };
+        fetchCampuses();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -148,19 +164,28 @@ export default function RegisterVendor() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-[#1E1E1E] mb-2 px-1">Campus Name</label>
+                            <label className="block text-sm font-bold text-[#1E1E1E] mb-2 px-1">Select Campus</label>
                             <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#6B6B6B] group-focus-within:text-[#FF6B00] transition-colors">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#6B6B6B] group-focus-within:text-[#FF6B00] transition-colors z-10">
                                     <School size={20} />
                                 </div>
-                                <input
-                                    type="text"
+                                <select
                                     required
-                                    value={formData.campusName}
-                                    onChange={(e) => setFormData({ ...formData, campusName: e.target.value })}
-                                    className="w-full pl-11 pr-4 py-3.5 bg-[#FFFAF5] border-2 border-transparent focus:border-[#FF6B00] focus:bg-white rounded-2xl outline-none font-medium transition-all"
-                                    placeholder="Enter your college/campus name"
-                                />
+                                    value={formData.campusId}
+                                    onChange={(e) => setFormData({ ...formData, campusId: e.target.value })}
+                                    className="w-full pl-11 pr-10 py-3.5 bg-[#FFFAF5] border-2 border-transparent focus:border-[#FF6B00] focus:bg-white rounded-2xl outline-none font-medium transition-all appearance-none cursor-pointer"
+                                    style={{ color: formData.campusId ? '#000' : '#888' }}
+                                >
+                                    <option value="" disabled hidden>Choose your campus</option>
+                                    {campuses.map(campus => (
+                                        <option key={campus._id} value={campus._id} style={{ color: '#000' }}>
+                                            {campus.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-[#6B6B6B]">
+                                    <ChevronDown size={20} />
+                                </div>
                             </div>
                         </div>
 
