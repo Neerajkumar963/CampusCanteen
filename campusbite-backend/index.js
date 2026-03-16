@@ -7,6 +7,19 @@ const mongoose = require('mongoose');
 const cron = require('node-cron');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const axios = require('axios'); // For faster HTTP requests
+
+const ABBREVIATIONS = {
+  'LPU': 'Lovely Professional University',
+  'CU': 'Chandigarh University',
+  'CGC': 'Chandigarh Group of Colleges',
+  'PU': 'Panjab University',
+  'TU': 'Thapar University',
+  'PEC': 'Punjab Engineering College',
+  'IIT': 'Indian Institute of Technology',
+  'NIT': 'National Institute of Technology',
+  'IIM': 'Indian Institute of Management'
+};
 
 // Import Models
 const Vendor = require('./models/Vendor');
@@ -538,6 +551,30 @@ app.get('/api/campuses', async (req, res) => {
     res.json({ success: true, campuses: campusesWithCounts });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to fetch campuses', error: err.message });
+  }
+});
+
+// Proxy for External University Search (Faster HTTP)
+app.get('/api/external/universities', async (req, res) => {
+  try {
+    let { name } = req.query;
+    if (!name) return res.json({ success: true, universities: [] });
+
+    name = name.trim();
+    const upperSearch = name.toUpperCase();
+    if (ABBREVIATIONS[upperSearch]) {
+      name = ABBREVIATIONS[upperSearch];
+    }
+
+    // Using HTTP directly from backend for maximum speed/stability
+    const response = await axios.get(`http://universities.hipolabs.com/search?country=India&name=${encodeURIComponent(name)}`, {
+      timeout: 5000 // 5 seconds timeout
+    });
+
+    res.json({ success: true, universities: response.data || [] });
+  } catch (err) {
+    console.error('External API Proxy Error:', err.message);
+    res.status(502).json({ success: false, message: 'External service unreachable', error: err.message });
   }
 });
 

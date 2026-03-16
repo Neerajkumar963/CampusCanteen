@@ -4,18 +4,6 @@ import { useNavigate, Link } from 'react-router';
 import { API_URL } from '../store/useStore';
 import { Store, User, Lock, KeyRound, ArrowRight, CheckCircle2, MessageSquare, School, ChevronDown } from 'lucide-react';
 
-const ABBREVIATIONS: Record<string, string> = {
-    'LPU': 'Lovely Professional University',
-    'CU': 'Chandigarh University',
-    'CGC': 'Chandigarh Group of Colleges',
-    'PU': 'Panjab University',
-    'TU': 'Thapar University',
-    'PEC': 'Punjab Engineering College',
-    'IIT': 'Indian Institute of Technology',
-    'NIT': 'National Institute of Technology',
-    'IIM': 'Indian Institute of Management'
-};
-
 export default function RegisterVendor() {
     const [formData, setFormData] = useState({
         vendorId: '',
@@ -59,19 +47,17 @@ export default function RegisterVendor() {
         const delayDebounceFn = setTimeout(async () => {
             setIsSearchingGlobal(true);
             try {
-                let apiSearchTerm = searchTerm.trim();
-                const upperSearch = apiSearchTerm.toUpperCase();
-                if (ABBREVIATIONS[upperSearch]) {
-                    apiSearchTerm = ABBREVIATIONS[upperSearch];
-                }
-
-                const response = await fetch(`https://universities.hipolabs.com/search?country=India&name=${encodeURIComponent(apiSearchTerm)}`);
+                // Call our internal backend proxy to avoid SSL timeouts and for speed
+                const response = await fetch(`${API_URL}/api/external/universities?name=${encodeURIComponent(searchTerm.trim())}`);
                 const data = await response.json();
-                // Filter out those already in local list to avoid duplicates
-                const filtered = data.filter((ext: any) => 
-                    !campuses.some(local => local.name.toLowerCase() === ext.name.toLowerCase())
-                );
-                setExternalCampuses(filtered.slice(0, 10)); // Limit to 10
+                
+                if (data.success) {
+                    // Filter out those already in local list to avoid duplicates
+                    const filtered = (data.universities || []).filter((ext: any) => 
+                        !campuses.some(local => local.name.toLowerCase() === ext.name.toLowerCase())
+                    );
+                    setExternalCampuses(filtered.slice(0, 10)); // Limit to 10
+                }
             } catch (err) {
                 console.error('Global search error:', err);
             } finally {
