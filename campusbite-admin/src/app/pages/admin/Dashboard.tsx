@@ -11,12 +11,14 @@ export default function Dashboard() {
   const getTodayOrders = useStore((state) => state.getTodayOrders);
   const getTodayRevenue = useStore((state) => state.getTodayRevenue);
   const fetchOrders = useStore((state) => state.fetchOrders);
+  const fetchMenu = useStore((state) => state.fetchMenu);
 
   useEffect(() => {
     if (currentVendor?.vendorId) {
       fetchOrders(currentVendor.vendorId);
+      fetchMenu(currentVendor.vendorId);
     }
-  }, [currentVendor?.vendorId, fetchOrders]);
+  }, [currentVendor?.vendorId, fetchOrders, fetchMenu]);
 
   const todayOrders = getTodayOrders();
   const todayRevenue = getTodayRevenue();
@@ -24,7 +26,10 @@ export default function Dashboard() {
     order.status === 'Pending' && 
     (order.vendorId === currentVendor?.vendorId)
   );
-  const activeItems = menu.filter((item) => item.available).length;
+  const activeItems = menu.filter((item) => 
+    item.available && 
+    (item.vendorId === currentVendor?.vendorId)
+  ).length;
 
   const stats = [
     {

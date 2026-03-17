@@ -402,9 +402,8 @@ io.on('connection', async (socket) => {
 
   // Send initial data to connected clients
   try {
-    const menuItems = await Menu.find();
     // socket.emit('initial_orders', orders); // Removed global orders leak
-    socket.emit('initial_menu', menuItems);
+    // socket.emit('initial_menu', menuItems); // Removed global menu leak
   } catch(err) {
     console.error('Socket initial data error:', err);
   }
@@ -1179,7 +1178,9 @@ app.post('/api/orders/reset', async (req, res) => {
 // --- MENU API Endpoints ---
 app.get('/api/menu', async (req, res) => {
   try {
-    const menuItems = await Menu.find();
+    const { vendorId } = req.query;
+    const query = vendorId ? { vendorId } : {};
+    const menuItems = await Menu.find(query);
     res.json(menuItems);
   } catch(err) {
     res.status(500).json({ error: err.message });

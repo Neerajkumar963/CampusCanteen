@@ -96,6 +96,7 @@ export default function MenuManagement() {
   const currentVendor = useStore((state) => state.currentVendor);
   const updateMenuItem = useStore((state) => state.updateMenuItem);
   const addMenuItem = useStore((state) => state.addMenuItem);
+  const fetchMenu = useStore((state) => state.fetchMenu);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [stockImages, setStockImages] = useState<any[]>([]);
@@ -110,6 +111,12 @@ export default function MenuManagement() {
     image: '',
     prepTime: '10',
   });
+
+  useEffect(() => {
+    if (currentVendor?.vendorId) {
+      fetchMenu(currentVendor.vendorId);
+    }
+  }, [currentVendor?.vendorId, fetchMenu]);
 
   useEffect(() => {
     const fetchStockImages = async () => {

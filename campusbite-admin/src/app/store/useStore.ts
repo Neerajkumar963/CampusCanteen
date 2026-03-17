@@ -98,6 +98,7 @@ interface StoreState {
   updateCombo: (id: string, updates: Partial<Combo>) => Promise<void>;
   deleteCombo: (id: string) => Promise<void>;
   fetchOrders: (vendorId: string) => Promise<void>;
+  fetchMenu: (vendorId: string) => Promise<void>;
 }
 
 const getInitialVendor = () => {
@@ -115,13 +116,13 @@ export const useStore = create<StoreState>((set, get) => {
     set({ orders: initialOrders });
   });
 
-  socket.on('initial_menu', (initialMenu: any[]) => {
-    const mapped = initialMenu.map(item => ({
-      ...item,
-      id: item.menuId || item.id
-    }));
-    set({ menu: mapped });
-  });
+  // socket.on('initial_menu', (initialMenu: any[]) => {
+  //   const mapped = initialMenu.map(item => ({
+  //     ...item,
+  //     id: item.menuId || item.id
+  //   }));
+  //   set({ menu: mapped });
+  // });
 
   socket.on('new_order_pulse', (newOrder) => {
     set((state) => ({
@@ -422,7 +423,7 @@ export const useStore = create<StoreState>((set, get) => {
         console.error('Failed to delete combo:', err);
       }
     },
-    fetchOrders: async (vendorId) => {
+    fetchOrders: async (vendorId: string) => {
       try {
         const response = await fetch(`${API_URL}/api/orders?vendorId=${vendorId}`);
         const data = await response.json();
@@ -431,6 +432,19 @@ export const useStore = create<StoreState>((set, get) => {
         }
       } catch (err) {
         console.error('Failed to fetch orders:', err);
+      }
+    },
+    fetchMenu: async (vendorId: string) => {
+      try {
+        const response = await fetch(`${API_URL}/api/menu?vendorId=${vendorId}`);
+        const data = await response.json();
+        const mapped = data.map((item: any) => ({
+          ...item,
+          id: item.menuId || item.id
+        }));
+        set({ menu: mapped });
+      } catch (err) {
+        console.error('Failed to fetch menu:', err);
       }
     },
   };
