@@ -17,7 +17,11 @@ const ABBREVIATIONS = {
   'PEC': 'Punjab Engineering College',
   'IIT': 'Indian Institute of Technology',
   'NIT': 'National Institute of Technology',
-  'IIM': 'Indian Institute of Management'
+  'IIM': 'Indian Institute of Management',
+  'GGI': 'Gulzar Group of Institutes',
+  'RIMT': 'RIMT University',
+  'CT': 'CT University',
+  'SVIET': 'Swami Vivekanand Institute of Engineering and Technology'
 };
 
 // Import Models
@@ -557,24 +561,38 @@ app.get('/api/campuses', async (req, res) => {
 app.get('/api/external/universities', async (req, res) => {
   try {
     let { name } = req.query;
-    if (!name) return res.json({ success: true, universities: [] });
+    console.log(`\n🔍 External Search Request: "${name}"`);
+    
+    if (!name || name.trim().length < 2) {
+      return res.json({ success: true, universities: [] });
+    }
 
     name = name.trim();
     const upperSearch = name.toUpperCase();
     if (ABBREVIATIONS[upperSearch]) {
+      console.log(`📍 Mapping "${upperSearch}" -> "${ABBREVIATIONS[upperSearch]}"`);
       name = ABBREVIATIONS[upperSearch];
     }
 
+    const url = `http://universities.hipolabs.com/search?country=India&name=${encodeURIComponent(name)}`;
+    console.log(`🌐 Fetching: ${url}`);
+
     // Using HTTP directly from backend for maximum speed/stability
-    const response = await fetch(`http://universities.hipolabs.com/search?country=India&name=${encodeURIComponent(name)}`, {
-      signal: AbortSignal.timeout(5000) // 5 seconds timeout
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(6000) // Increased to 6 seconds timeout
     });
+    
+    if (!response.ok) {
+        throw new Error(`API responded with status: ${response.status}`);
+    }
+
     const universities = await response.json();
+    console.log(`✅ Found ${universities?.length || 0} results for "${name}"`);
 
     res.json({ success: true, universities: universities || [] });
   } catch (err) {
-    console.error('External API Proxy Error:', err.message);
-    res.status(502).json({ success: false, message: 'External service unreachable', error: err.message });
+    console.error('❌ External API Proxy Error:', err.message);
+    res.status(200).json({ success: false, message: 'External service error', universities: [] });
   }
 });
 
